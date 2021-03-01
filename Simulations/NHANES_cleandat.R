@@ -1,12 +1,13 @@
 ########################################################
 ###       Clean Data for NHANES Sims+Analysis        ###
 ########################################################
-## Oct 8, 2020
+## Feb 24, 2021
 ## Script to clean NHANES data 
 ## Also defines analysis functions
 
 
 # doLog=FALSE in main script that calls this one
+# swapX=FALSE in main script that calls this one
 ##########################
 ###  Pre-process data  ###  
 ##########################
@@ -52,6 +53,15 @@ colnames(X)[c(3)] <- paste0("C--",colnames(X)[c(3)])
 colnames(X)[c(12:18)] <- paste0("C-",colnames(X)[c(12:18)])
 X <- X[,sort(colnames(X))]
 colnames(X) <- substring(colnames(X),3); colnames(X)[substring(colnames(X),1,1)=="-"] <- substring(colnames(X)[substring(colnames(X),1,1)=="-"],2)
+
+## if swapX==TRUE, permute exposures within groups to avoid artifacts in simulations due to unique correlation structure
+if(exists("swapX")){
+  if(swapX==TRUE){
+    X[,1:8] <- X[,sample(1:8)]
+    X[,9:10] <- X[,sample(9:10)]
+    X[,11:18] <- X[,sample(11:18)]
+  }
+}
 
 ## covariates
 covariates <- with(nhanes, cbind(age_z, agez_sq, male, bmicat2, bmicat3))
