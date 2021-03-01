@@ -672,23 +672,33 @@ bsmim_crossval2 <- function(object,
 #' @return A list of length M of data.frames summarizing theta estimates.
 #' @author Glen McGee
 #' @export
-summarize_thetas <- function(obj){
+summarize_thetas <- function(obj,
+                             w=FALSE){ # whether to report ws instead of thetas (i.e. for ranked method)
   res <- list()
   for(jj in 1:length(obj$theta)){
-    theta_raw <- obj$theta[[jj]]
+    if(w==FALSE){
+      theta_raw <- obj$theta[[jj]]
+    }else{ ## if specified, use w instead of theta
+      theta_raw <- obj$w[[jj]]
+    }
     rho0 <- apply(theta_raw,1,function(x) sum(x!=0)==0) ## when all thetas are 0 (i.e. rho==0), theta is not well defined
     prop_rho0 <- mean(rho0)
-    theta <- theta_raw[!rho0,] ## consider only well defined values # theta[apply(theta,1,function(x) sum(x!=0)==0),] <- 1/sqrt(ncol(theta))
-    if(ncol(obj$theta[[jj]])==1){
+    ## consider only well defined values # theta[apply(theta,1,function(x) sum(x!=0)==0),] <- 1/sqrt(ncol(theta))
+    theta <- theta_raw[!rho0,] 
+    ## summarize
+    if(ncol(obj$theta[[jj]])==1){ ## for L_m=1
       prop_theta0 <- 1
       post_mean <- 1
       theta_est <- 1
       post_lci <- 1
       post_uci <- 1
-    }else{
+    }else{ ## for L_m>1
+      ## ensure they are standardized
+      theta <- theta/sqrt(apply(theta,1,function(x) sum(x^2))) ## i.e. in case we are using w above
+      
       prop_theta0 <- apply(theta,2,function(x) mean(x==0))
       post_mean <- apply(theta,2,mean)
-      theta_est <- post_mean/sqrt(sum(post_mean^2)) ## standardize posterior mean to satisfy constrain
+      theta_est <- post_mean/sqrt(sum(post_mean^2)) ## standardize posterior mean to satisfy constraint
       post_lci <- apply(theta,2,function(x) quantile(x,0.025)) ## credible interval
       post_uci <- apply(theta,2,function(x) quantile(x,0.975)) ## credible interval 
     }
