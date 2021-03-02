@@ -1,11 +1,21 @@
 Package: bsmim2
 Type: Package
-Title: What the package does (short line)
+Title: Bayesian Single and Multiple Index Models 
 Version: 1.0
-Date: 2019-11-22
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
-Imports: Rcpp (>= 1.0.3)
-LinkingTo: Rcpp, RcppArmadillo
+Date: 2021-3-1
+Author: Glen McGee and Ander Wilson
+Maintainer: Glen McGee <glen.mcgee@uwaterloo.ca>
+Description: This package fits Bayesian single and multiple index models including variable selection.
+License: GPL (>= 2)
+Imports: 
+    GIGrvg,
+    refund,
+    splines,
+    ggplot2,
+    tidyverse,
+    mgcv,
+    MASS,
+    Rcpp (>= 1.0.3)
+LinkingTo: Rcpp, RcppArmadillo, GIGrvg
+RoxygenNote: 7.1.1
+Encoding: UTF-8
