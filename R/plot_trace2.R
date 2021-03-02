@@ -23,7 +23,7 @@ plot_trace2 <- function(object){
       dfplot <- data.frame(theta=object$theta[[mm]][,ll],
                            iter=1:nrow(object$theta[[mm]]) )
       
-      p <- ggplot(dfplot, aes(x=iter, y=theta))+
+      p <- ggplot(dfplot, aes_string(x="iter", y="theta"))+
         geom_line(linetype=1)+ ## 3 is dotted
         ylab("Theta")+
         xlab("Iteration")+
@@ -42,7 +42,7 @@ plot_trace2 <- function(object){
     dfplot <- data.frame(rho=as.matrix(object$rho)[,mm],
                          iter=1:nrow(as.matrix(object$rho)) )
     
-    p <- ggplot(dfplot, aes(x=iter, y=rho))+
+    p <- ggplot(dfplot, aes_string(x="iter", y="rho"))+
       geom_line(linetype=1)+ ## 3 is dotted
       ylab("Rho")+
       xlab("Iteration")+
@@ -62,7 +62,7 @@ plot_trace2 <- function(object){
         dfplot <- data.frame(nu=object$nu[[mm]][,ll],
                              iter=1:nrow(object$nu[[mm]]) )
         
-        p <- ggplot(dfplot, aes(x=iter, y=nu))+
+        p <- ggplot(dfplot, aes_string(x="iter", y="nu"))+
           geom_line(linetype=1)+ ## 3 is dotted
           ylab("Nu")+
           xlab("Iteration")+
@@ -83,7 +83,7 @@ plot_trace2 <- function(object){
     dfplot <- data.frame(gamma=object$gamma[,pp],
                          iter=1:nrow(object$gamma) )
     
-    p <- ggplot(dfplot, aes(x=iter, y=gamma))+
+    p <- ggplot(dfplot, aes_string(x="iter", y="gamma"))+
       geom_line(linetype=1)+ ## 3 is dotted
       ylab("Gamma")+
       xlab("Iteration")+
@@ -97,7 +97,7 @@ plot_trace2 <- function(object){
   ## lambdaInverse
   dfplot <- data.frame(lambdaInverse=object$lambdaInverse,
                        iter=1:length(object$lambdaInverse) )
-  plot_lambdaInverse <- ggplot(dfplot, aes(x=iter, y=lambdaInverse))+
+  plot_lambdaInverse <- ggplot(dfplot, aes_string(x="iter", y="lambdaInverse"))+
     geom_line(linetype=1)+ ## 3 is dotted
     ylab("lambda Inverse")+
     xlab("Iteration")+
@@ -108,7 +108,7 @@ plot_trace2 <- function(object){
   ## lambdaBInverse
   dfplot <- data.frame(lambdaBInverse=object$lambdaBInverse,
                        iter=1:length(object$lambdaBInverse) )
-  plot_lambdaBInverse <- ggplot(dfplot, aes(x=iter, y= lambdaBInverse))+
+  plot_lambdaBInverse <- ggplot(dfplot, aes_string(x="iter", y= "lambdaBInverse"))+
     geom_line(linetype=1)+ ## 3 is dotted
     ylab("lambda_B Inverse")+
     xlab("Iteration")+
@@ -119,7 +119,7 @@ plot_trace2 <- function(object){
   ## tau
     dfplot <- data.frame(tau=object$tau,
                          iter=1:length(object$tau) )
-    plot_tau <- ggplot(dfplot, aes(x=iter, y=tau))+
+    plot_tau <- ggplot(dfplot, aes_string(x="iter", y="tau"))+
       geom_line(linetype=1)+ ## 3 is dotted
       ylab("Tau")+
       xlab("Iteration")+
@@ -132,7 +132,7 @@ plot_trace2 <- function(object){
   ## sigma2
   dfplot <- data.frame(sigma2=object$sigma2,
                        iter=1:length(object$sigma2) )
-  plot_sigma2 <- ggplot(dfplot, aes(x=iter, y=sigma2))+
+  plot_sigma2 <- ggplot(dfplot, aes_string(x="iter", y="sigma2"))+
     geom_line(linetype=1)+ ## 3 is dotted
     ylab("sigma2")+
     xlab("Iteration")+

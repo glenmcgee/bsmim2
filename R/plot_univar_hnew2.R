@@ -31,9 +31,9 @@ plot_univar_hnew2 <- function(pred,ylims=NULL,assoc=TRUE){
       }
       
       
-      p <- ggplot(df, aes(x=grid, y=mean))+
+      p <- ggplot(df, aes_string(x="grid", y="mean"))+
         geom_line(linetype=3)+ ## 3 is dotted
-        geom_ribbon(aes(ymin=lower,ymax=upper),alpha=0.2)+
+        geom_ribbon(aes_string(ymin="lower",ymax="upper"),alpha=0.2)+
         ylim(miny,maxy)+
         ylab("Estimated exposure-response vs median")+
         xlab("Quantile")+
@@ -86,9 +86,9 @@ plot_univar_hnew2 <- function(pred,ylims=NULL,assoc=TRUE){
       dfplot <- df[(nid-1)*pts + (1:pts),]
       nid <- nid+1
       
-      p <- ggplot(dfplot, aes(x=grid, y=mean))+
+      p <- ggplot(dfplot, aes_string(x="grid", y="mean"))+
         geom_line(linetype=3)+ ## 3 is dotted
-        geom_ribbon(aes(ymin=lower,ymax=upper),alpha=0.2)+
+        geom_ribbon(aes_string(ymin="lower",ymax="upper"),alpha=0.2)+
         ylim(miny,maxy)+
         ylab("Estimated exposure-response (h)")+
         xlab("Exposure Component")+
@@ -202,9 +202,9 @@ plot_univar_hnew_indexwise2 <- function(pred,ylims=NULL){
     
       dfplot <- df[df$m==mm,]  ## subset data
       
-      p <- ggplot(dfplot, aes(x=grid, y=mean))+
+      p <- ggplot(dfplot, aes_string(x="grid", y="mean"))+
         geom_line(linetype=3)+ ## 3 is dotted
-        geom_ribbon(aes(ymin=lower,ymax=upper),alpha=0.2)+
+        geom_ribbon(aes_string(ymin="lower",ymax="upper"),alpha=0.2)+
         ylim(miny,maxy)+
         ylab("Estimated exposure-response (h)")+
         xlab("Exposure")+

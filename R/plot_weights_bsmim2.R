@@ -23,7 +23,7 @@ plot_weights_bsmim2 <- function(object){
     dfplot <- gather(dfplot,"l","theta")
     if(ncol(object$theta[[mm]])==1){dfplot$l <- ""}
     
-    p <- ggplot(dfplot, aes(x=l, y=theta))+
+    p <- ggplot(dfplot, aes_string(x="l", y="theta"))+
       geom_boxplot()+##color=alpha("black",0.8)
       geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
       scale_y_continuous(expression(paste("Component Weights (",theta,")")),limits=c(-1,1)) + 
@@ -52,7 +52,7 @@ plot_weights_bsmim2 <- function(object){
     dfplot <- gather(dfplot,"l","thetastar")
     if(ncol(object$theta[[mm]])==1){dfplot$l <- ""}
 
-    p <- ggplot(dfplot, aes(x=l, y=thetastar))+
+    p <- ggplot(dfplot, aes_string(x="l", y="thetastar"))+
       geom_boxplot()+##color=alpha("black",0.8)
       geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
       scale_y_continuous(expression(paste("Exposure Importance (",theta,"*)")),limits=c(miny,maxy)) + 
@@ -74,7 +74,7 @@ plot_weights_bsmim2 <- function(object){
       dfplot <- gather(dfplot,"l","thetaPOS")
       if(ncol(object$thetaPOS[[mm]])==1){dfplot$l <- ""}
       
-      p <- ggplot(dfplot, aes(x=l, y=thetaPOS))+
+      p <- ggplot(dfplot, aes_string(x="l", y="thetaPOS"))+
         geom_boxplot()+##color=alpha("black",0.8)
         geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
         scale_y_continuous(expression(paste("Component Weights Proportions")),limits=c(0,1)) + 
@@ -101,7 +101,7 @@ plot_weights_bsmim2 <- function(object){
       dfplot$l <- ""
     }
     
-    p <- ggplot(dfplot, aes(x=l, y=w))+
+    p <- ggplot(dfplot, aes_string(x="l", y="w"))+
       geom_boxplot()+##color=alpha("black",0.8)
       geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
       scale_y_continuous(expression(paste("Component Weights (",w[m],")")),limits=c(-1,1)) + 
@@ -135,7 +135,7 @@ plot_weights_bsmim2 <- function(object){
       dfplot$l <- ""
     }
     
-    p <- ggplot(dfplot, aes(x=l, y=wstar))+
+    p <- ggplot(dfplot, aes_string(x="l", y="wstar"))+
       geom_boxplot()+##color=alpha("black",0.8)
       geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
       scale_y_continuous(expression(paste("Exposure Importance (",w[m],"*)")),limits=c(miny,maxy)) + 
@@ -162,7 +162,7 @@ plot_weights_bsmim2 <- function(object){
         dfplot$l <- ""
       }
       
-      p <- ggplot(dfplot, aes(x=l, y=w))+
+      p <- ggplot(dfplot, aes_string(x="l", y="w"))+
         geom_boxplot()+##color=alpha("black",0.8)
         geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
         scale_y_continuous(expression(paste("Component Proportions")),limits=c(0,1)) + 
@@ -180,7 +180,7 @@ plot_weights_bsmim2 <- function(object){
   colnames(dfplot) <- 1:ncol(dfplot)
   dfplot <- gather(dfplot,"l","rho")
 
-  p <- ggplot(dfplot, aes(x=l, y=rho))+
+  p <- ggplot(dfplot, aes_string(x="l", y="rho"))+
     geom_boxplot()+##color=alpha("black",0.8)
     geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
     scale_y_continuous(expression(paste("Index Importance (",rho,")")))+#,limits=c(-1,1)) + 
