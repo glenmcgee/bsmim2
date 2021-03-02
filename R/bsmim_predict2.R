@@ -13,6 +13,7 @@
 #' @param newvals optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtl and points
 #'
 #' @return a dataframe containing predicted values.
+#' @importFrom stats quantile
 #' @export
 #'
 predict_hnew_old2 <- function(object,
@@ -313,6 +314,7 @@ predict_hnew2 <- function(object,
 # #' @param newX optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtl and points
 #'
 #' @return a dataframe containing predicted values.
+#' @importFrom stats quantile
 #' @export
 #'
 predict_hnew_assoc2 <- function(object,
@@ -494,7 +496,7 @@ predict_hnew_assoc2 <- function(object,
 #' @param crossM Exposure to set a cross section quantile for
 #' @param qtl quantile for the cross section
 #' @param trueW weights for prediction for comparison to true curve; if NULL then set to posterior mean
-#'
+#' @importFrom stats median
 #' @return a dataframe containing predicted values.
 #' @export
 #'

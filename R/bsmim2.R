@@ -18,13 +18,14 @@
 #' @param prior_lambda_shaperate Hyperparameters (\eqn{a_{\lambda}}, \eqn{b_{\lambda}}), the shape and rate parameters for gamma prior.
 #' @param prior_tau Hyperparameter \eqn{\tau_{0}^2}, scale parameter for half Cauchy prior for \eqn{\tau}. (default 1)
 #' @param kappa Vector of length M of scale parameters, kappa_m. If only one number is provided, we take all \eqn{\kappa_m}=kappa
-#' @param basis.opts List with the entries: type = the type of basis used, either 'face' (default) or "ns" or "bs" for splines or "gam" for presmoothing the exposure with a gam following defaults from mgcv; knots = the number of knots used for method face; pve = the percent of variance explained by the PCs for method face; df = the df for ns method.
+#' @param basis.opts.list List with the entries: type = the type of basis used, either 'face' (default) or "ns" or "bs" for splines or "gam" for presmoothing the exposure with a gam following defaults from mgcv; knots = the number of knots used for method face; pve = the percent of variance explained by the PCs for method face; df = the df for ns method.
 #' @param horseshoe Use the horseshoe prior for indexwise selection (default FALSE)
 #' @param gaussian Use a Gaussian kernel (TRUE, default) or a polynomial kernel (FALSE)
 #' @param polydegree Degree of polynomial when polynomial kernel is used.  Only applies when gaussian=FALSE.
 #' @return An object of class 'bsmim'.
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
-#' @importFrom stats model.matrix sd
+#' @importFrom stats model.matrix sd var qnorm
+#' @importFrom MASS mvrnorm
 #' @importFrom GIGrvg rgig
 #' @export
 

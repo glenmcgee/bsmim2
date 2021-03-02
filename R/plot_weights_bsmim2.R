@@ -1,12 +1,10 @@
-require(ggplot2)
-require(tidyverse)
-
 #' Plot weights (rho, theta, theta*) for bsmim
 #' 
 #'
 #' @param object An object of class bsmim
 #'
 #' @return a list of boxplots.
+#' @improt ggplot2 tidyverse
 #' @export
 #'
 

@@ -10,7 +10,8 @@ require(refund)
 #' @author Ander Wilson
 #' @importFrom splines ns bs
 #' @importFrom refund fpca.face
-#' @importFrom mgcv gam
+#' @importFrom stats cor predict
+#' @importFrom mgcv gam 
 
 
 bdlimbasis <- function(X,basis.opts){

@@ -1,11 +1,10 @@
-require(ggplot2)
-
 #' Plot component-wise response curves
 #' 
 #'
 #' @param object An object of class bsmim
 #'
 #' @return a list of trace plots.
+#' @import ggplot2 
 #' @export
 #'
 

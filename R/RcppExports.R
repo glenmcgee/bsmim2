@@ -27,7 +27,7 @@
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
 #' @export
 bsmim_mcmc2 <- function(yz, Xlist, b_lambda, b_lambdaB, a_sig, b_sig, tau02, kappa, poly, d, horseshoe, randint, Bmat, draw_h, n_inner, n_outer, n_burn) {
-    .Call(`_bsmim2_bsmim_mcmc2`, yz, Xlist, b_lambda, b_lambdaB, a_sig, b_sig, tau02, kappa, poly, d, horseshoe, randint, Bmat, draw_h, n_inner, n_outer, n_burn)
+    .Call('_bsmim2_bsmim_mcmc2', PACKAGE = 'bsmim2', yz, Xlist, b_lambda, b_lambdaB, a_sig, b_sig, tau02, kappa, poly, d, horseshoe, randint, Bmat, draw_h, n_inner, n_outer, n_burn)
 }
 
 #' MCMC for BSMIM with spike and slab prior (inv-uniform slab for rho version)
@@ -57,7 +57,7 @@ bsmim_mcmc2 <- function(yz, Xlist, b_lambda, b_lambdaB, a_sig, b_sig, tau02, kap
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
 #' @export
 bsmim_spikeslab_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, a_theta, b_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn) {
-    .Call(`_bsmim2_bsmim_spikeslab_mcmc2`, yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, a_theta, b_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn)
+    .Call('_bsmim2_bsmim_spikeslab_mcmc2', PACKAGE = 'bsmim2', yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, a_theta, b_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn)
 }
 
 #' MCMC for BSMIM with spike and slab prior (inv-uniform slab for rho version)
@@ -87,7 +87,7 @@ bsmim_spikeslab_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_s
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
 #' @export
 bsmim_spikeslab_gaussprior_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn) {
-    .Call(`_bsmim2_bsmim_spikeslab_gaussprior_mcmc2`, yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn)
+    .Call('_bsmim2_bsmim_spikeslab_gaussprior_mcmc2', PACKAGE = 'bsmim2', yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn)
 }
 
 #' MCMC for BSMIM with spike and slab prior (inv-uniform slab for rho version)
@@ -117,7 +117,7 @@ bsmim_spikeslab_gaussprior_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB,
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
 #' @export
 bsmim_informative_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, thetaconstraint, a_slabpos, b_slabpos, alphas, a_rho, b_rho, n_inner, n_outer, n_burn) {
-    .Call(`_bsmim2_bsmim_informative_mcmc2`, yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, thetaconstraint, a_slabpos, b_slabpos, alphas, a_rho, b_rho, n_inner, n_outer, n_burn)
+    .Call('_bsmim2_bsmim_informative_mcmc2', PACKAGE = 'bsmim2', yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, thetaconstraint, a_slabpos, b_slabpos, alphas, a_rho, b_rho, n_inner, n_outer, n_burn)
 }
 
 #' Predicting hnew for BSMIM by Component
@@ -143,7 +143,7 @@ bsmim_informative_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson)
 #' @export
 bsmim_predict_old_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, Xqlist, poly, d, randint, Bmat) {
-    .Call(`_bsmim2_bsmim_predict_old_cpp2`, yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, Xqlist, poly, d, randint, Bmat)
+    .Call('_bsmim2_bsmim_predict_old_cpp2', PACKAGE = 'bsmim2', yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, Xqlist, poly, d, randint, Bmat)
 }
 
 #' Predicting hnew for BSMIM by Component
@@ -168,7 +168,7 @@ bsmim_predict_old_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma, la
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson)
 #' @export
 bsmim_predict_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, poly, d, randint, Bmat) {
-    .Call(`_bsmim2_bsmim_predict_cpp2`, yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, poly, d, randint, Bmat)
+    .Call('_bsmim2_bsmim_predict_cpp2', PACKAGE = 'bsmim2', yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, poly, d, randint, Bmat)
 }
 
 #' Predicting hnew for BSMIM by Component using APPROXIMATE method, computing the conditional mean and variance of hnew given posterior means of everything else
@@ -194,7 +194,7 @@ bsmim_predict_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma, lambda
 #' @author Glen McGee (adapted from the "regimes" package by Ander Wilson)
 #' @export
 bsmim_predict_approx_old_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, Xqlist, poly, d, randint, Bmat) {
-    .Call(`_bsmim2_bsmim_predict_approx_old_cpp2`, yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, Xqlist, poly, d, randint, Bmat)
+    .Call('_bsmim2_bsmim_predict_approx_old_cpp2', PACKAGE = 'bsmim2', yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, Xqlist, poly, d, randint, Bmat)
 }
 
 #' Predicting hnew for BSMIM by Component using APPROXIMATE method, computing the conditional mean and variance of hnew given posterior means of everything else
@@ -220,7 +220,7 @@ bsmim_predict_approx_old_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, ga
 #' @author Glen McGee (adapted from the "regimes" package by Ander Wilson)
 #' @export
 bsmim_predict_approx_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, poly, d, randint, Bmat) {
-    .Call(`_bsmim2_bsmim_predict_approx_cpp2`, yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, poly, d, randint, Bmat)
+    .Call('_bsmim2_bsmim_predict_approx_cpp2', PACKAGE = 'bsmim2', yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, poly, d, randint, Bmat)
 }
 
 #' Predicting hnew for BSMIM by Index
@@ -248,7 +248,7 @@ bsmim_predict_approx_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma,
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson)
 #' @export
 bsmim_predict_indexwise_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpoints, Xmedianlist, Eq, crossM, poly, d, randint, Bmat) {
-    .Call(`_bsmim2_bsmim_predict_indexwise_cpp2`, yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpoints, Xmedianlist, Eq, crossM, poly, d, randint, Bmat)
+    .Call('_bsmim2_bsmim_predict_indexwise_cpp2', PACKAGE = 'bsmim2', yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpoints, Xmedianlist, Eq, crossM, poly, d, randint, Bmat)
 }
 
 #' Generic function for predicting hnew for BSMIM given new exposure levels X
@@ -273,6 +273,6 @@ bsmim_predict_indexwise_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gam
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson)
 #' @export
 bsmim_predict_X_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, poly, d, randint, Bmat) {
-    .Call(`_bsmim2_bsmim_predict_X_cpp2`, yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, poly, d, randint, Bmat)
+    .Call('_bsmim2_bsmim_predict_X_cpp2', PACKAGE = 'bsmim2', yz, Xlist, thetalist, psilist, rho, gamma, lambdaInverse, lambdaBInverse, sigma2, weightslist, gridpointslist, poly, d, randint, Bmat)
 }
 

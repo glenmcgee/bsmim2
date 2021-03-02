@@ -10,7 +10,9 @@ require(refund)
 #' @author Glen McGee & Ander Wilson
 #' @importFrom splines ns bs
 #' @importFrom refund fpca.face
-#' @importFrom mgcv gam
+#' @importFrom mgcv gam 
+#' @importFrom stats prcomp predict
+
 
 
 getbasis <- function(X,basis.opts){

@@ -1,6 +1,3 @@
-require(ggplot2)
-
-
 #' Plot component-wise response curves
 #' 
 #'
@@ -8,6 +5,7 @@ require(ggplot2)
 #' @param ylims An optional vector of length 2 containing the limits for the y axis; default is null
 #'
 #' @return a list of component-wise response-curve plots .
+#' @import ggplot2 
 #' @export
 #'
 plot_univar_hnew2 <- function(pred,ylims=NULL,assoc=TRUE){
