@@ -562,9 +562,11 @@ List bsmim_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z does not inc
 //' @param b_sig second hyperparameter for \eqn{\sigma^{-2}}
 //' @param a_theta lower bound of unif for invunif prior on \eqn{\theta^{*2}_m}
 //' @param b_theta upper bound of unif for invunif prior on \eqn{\theta^{*2}_m}
+//' @param step_theta step size for theta* random walk (move 2)
+//' @param a_pi first hyperparameter for beta distribution of pi 
+//' @param b_pi second hyperparameter for beta distribution of pi 
 //' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 //' @param d degree of polynomial kernel
-//' @param horseshoe 0 = no selection, 1 = componentwise horseshoe priors
 //' @param randint 0 = no random intercepts, 1 = random intercepts model
 //' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 //' @param draw_h 0 = dont draw h, 1 = draw h
@@ -659,7 +661,7 @@ List bsmim_spikeslab_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z do
     
     
     // Initialize other values
-    double logLambdaInverse_PROP, llu, ll_PROP, logratio;
+    double logLambdaInverse_PROP, ll_PROP, logratio;
     double llB, logLambdaBInverse_PROP, llB_PROP;
     arma::vec ons(N, arma::fill::ones);           // vector of length N of ones
     arma::vec vec_PROP;                           // proposal vector to define ellipse
@@ -1057,11 +1059,12 @@ List bsmim_spikeslab_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z do
 //' @param b_lambdaB hyperparameter for \eqn{\lambda^{-1}_B}
 //' @param a_sig first hyperparameter for \eqn{\sigma^{-2}}
 //' @param b_sig second hyperparameter for \eqn{\sigma^{-2}}
-//' @param tau02 hyperparameter for tau2; classic horseshoe is 1
-//' @param kappa vector of hyperparameters \eqn{\kappa_m} for \eqn{\theta^*_m}
+//' @param s_theta hyperparameter for sd of gaussian prior for thetastar (slab component)
+//' @param step_theta step size for theta* random walk (move 2)
+//' @param a_pi first hyperparameter for beta distribution of pi 
+//' @param b_pi second hyperparameter for beta distribution of pi 
 //' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 //' @param d degree of polynomial kernel
-//' @param horseshoe 0 = no selection, 1 = componentwise horseshoe priors
 //' @param randint 0 = no random intercepts, 1 = random intercepts model
 //' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 //' @param draw_h 0 = dont draw h, 1 = draw h
@@ -1155,7 +1158,7 @@ List bsmim_spikeslab_gaussprior_mcmc2(const arma::mat&    yz,         // matrix 
     
     
     // Initialize other values
-    double logLambdaInverse_PROP, llu, ll_PROP, logratio;
+    double logLambdaInverse_PROP, ll_PROP, logratio;
     double llB, logLambdaBInverse_PROP, llB_PROP;
     arma::vec ons(N, arma::fill::ones);           // vector of length N of ones
     arma::vec vec_PROP;                           // proposal vector to define ellipse
@@ -1531,14 +1534,21 @@ List bsmim_spikeslab_gaussprior_mcmc2(const arma::mat&    yz,         // matrix 
 //' @param b_lambdaB hyperparameter for \eqn{\lambda^{-1}_B}
 //' @param a_sig first hyperparameter for \eqn{\sigma^{-2}}
 //' @param b_sig second hyperparameter for \eqn{\sigma^{-2}}
-//' @param tau02 hyperparameter for tau2; classic horseshoe is 1
-//' @param kappa vector of hyperparameters \eqn{\kappa_m} for \eqn{\theta^*_m}
+//' @param s_theta hyperparameter for sd of gaussian prior for thetastar 
+//' @param step_theta step size for theta* random walk (move 2)
+//' @param a_pi first hyperparameter for beta distribution of pi 
+//' @param b_pi second hyperparameter for beta distribution of pi 
 //' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 //' @param d degree of polynomial kernel
-//' @param horseshoe 0 = no selection, 1 = componentwise horseshoe priors
 //' @param randint 0 = no random intercepts, 1 = random intercepts model
 //' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 //' @param draw_h 0 = dont draw h, 1 = draw h
+//' @param thetaconstraint M-vector for type of constraints (0 is none, 1 is positive, 2 is dirichlet)
+//' @param a_slabpos shape for gamma distribution (for gamma slab of positivity constraint); default=4
+//' @param b_slabpos rate for gamma distribution(for gamma slab of positivity constraint); default=2
+//' @param alphas list of Lm vectors representing alpha hyperparameters for dirichlet prior
+//' @param a_rho shape for gamma distribution (rho^{1/2})
+//' @param b_rho rate for gamma distribution (rho^{1/2}) 
 //' @param n_inner no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
 //' @param n_outer no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
 //' @param n_burn no. of MCMC iterations to discard as burn-in
@@ -1648,7 +1658,7 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
     
     
     // Initialize other values
-    double logLambdaInverse_PROP, llu, ll_PROP, logratio;
+    double logLambdaInverse_PROP, ll_PROP, logratio;
     double llB, logLambdaBInverse_PROP, llB_PROP;
     arma::vec ons(N, arma::fill::ones);           // vector of length N of ones
     arma::vec vec_PROP;                           // proposal vector to define ellipse

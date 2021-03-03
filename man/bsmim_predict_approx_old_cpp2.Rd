@@ -44,6 +44,8 @@ bsmim_predict_approx_old_cpp2(
 
 \item{weightslist}{list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*))}
 
+\item{gridpointslist}{List of (points by L_m) matrix of new values to predict at}
+
 \item{Xqlist}{list of L_m-vectors containing exposure quantiles}
 
 \item{poly}{0 = gaussian kernel, 1 = polynomial kernel}
@@ -53,8 +55,6 @@ bsmim_predict_approx_old_cpp2(
 \item{randint}{0 = no random intercepts, 1 = random intercepts model}
 
 \item{Bmat}{N xN block diagonal matrix indicating cluster membership for random intercepts model}
-
-\item{gridpoints}{(points by M) matrix containing grid of new index levels for each index m}
 }
 \description{
 Returns a list containing (points by (sum_m Lm) ) matrices of hmean and hvar

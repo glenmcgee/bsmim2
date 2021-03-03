@@ -16,7 +16,15 @@ predict_hnew_assoc2(
 \arguments{
 \item{object}{An object of class bsmim}
 
-\item{qtl}{M-list of Lm-vectors containing quantiles to set exposure components to}
+\item{qtl_lims}{Quantile limits for grid of exposure values}
+
+\item{qtls}{M-list of Lm-vectors containing quantiles to set exposure components to}
+
+\item{compare_qtl}{quantile to compare all others to}
+
+\item{overall}{should the 'overall' effect be reported}
+
+\item{approx}{should the approximate method be used (not recommended)}
 }
 \value{
 a dataframe containing predicted values.

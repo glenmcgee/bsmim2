@@ -10,6 +10,8 @@ plot_univar_hnew2(pred, ylims = NULL, assoc = TRUE)
 \item{pred}{An object of class hpred}
 
 \item{ylims}{An optional vector of length 2 containing the limits for the y axis; default is null}
+
+\item{assoc}{Report contrasts}
 }
 \value{
 a list of component-wise response-curve plots .

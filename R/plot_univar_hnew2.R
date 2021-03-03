@@ -3,6 +3,7 @@
 #'
 #' @param pred An object of class hpred
 #' @param ylims An optional vector of length 2 containing the limits for the y axis; default is null
+#' @param assoc Report contrasts
 #'
 #' @return a list of component-wise response-curve plots .
 #' @import ggplot2 

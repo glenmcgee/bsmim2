@@ -25,6 +25,12 @@ predict_hnew_X2(
 \item{newZ}{N by P_z matrix of new covariates}
 
 \item{newAmat}{N by K design matrix indicating cluster membership (only used when using random intercepts)}
+
+\item{rawX}{set to TRUE if newX needs to first be preprocessed}
+
+\item{qtl_lims}{(only used if newX is null) Quantile limits for grid of exposure values}
+
+\item{points}{(only used if newX is null) Number of points to predict at}
 }
 \value{
 a list of (1) a dataframe containing mean, sd and interval for hnew, (2) matrix of samples of hnew, (3) list of exposure grid (newX)

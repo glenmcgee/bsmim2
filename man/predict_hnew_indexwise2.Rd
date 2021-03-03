@@ -18,6 +18,8 @@ predict_hnew_indexwise2(
 
 \item{points}{Number of points to predict at}
 
+\item{qtl_lims}{Quantile limits for grid of exposure values}
+
 \item{crossM}{Exposure to set a cross section quantile for}
 
 \item{qtl}{quantile for the cross section}

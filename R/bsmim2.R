@@ -20,6 +20,19 @@
 #' @param kappa Vector of length M of scale parameters, kappa_m. If only one number is provided, we take all \eqn{\kappa_m}=kappa
 #' @param basis.opts.list List with the entries: type = the type of basis used, either 'face' (default) or "ns" or "bs" for splines or "gam" for presmoothing the exposure with a gam following defaults from mgcv; knots = the number of knots used for method face; pve = the percent of variance explained by the PCs for method face; df = the df for ns method.
 #' @param horseshoe Use the horseshoe prior for indexwise selection (default FALSE)
+#' @param spike_slab Use spike and slab priors for variable selection on thetastar
+#' @param gauss_prior Gaussian priors on thetastar T/F
+#' @param prior_theta_slab_sd SD of slab prior for thetastar
+#' @param prior_theta_slab_bounds Uniform bounds for inv-uniform slab prior for thetastar
+#' @param prior_pi Parameters for beta distribution prior for pi in spike & slab
+#' @param stepsize_theta Step size for random walk thetastar 
+#' @param gaussian Gaussian Kernel (False=Polynomial)
+#' @param polydegree Degree of polynomial kernel (if not using Gaussian)
+#' @param draw_h Draw samples of h in mcmc (T/F)
+#' @param constraints Vector indicating which constraints to impose on thetas: vector of M elements; 0 is unconstrained, 1 is non-negative, 2 is dirichlet 
+#' @param prior_slabpos Shape and rate for gamma prior on thetastar (under constraints=1)
+#' @param prior_alphas List of alpha hyperparameters for dirichlet prior on weights (under constraints=2)
+#' @param prior_slabrho Shape and rate for gamma prior on rho^{1/2} (under constraints=2)
 #' @param gaussian Use a Gaussian kernel (TRUE, default) or a polynomial kernel (FALSE)
 #' @param polydegree Degree of polynomial when polynomial kernel is used.  Only applies when gaussian=FALSE.
 #' @return An object of class 'bsmim'.
@@ -552,7 +565,9 @@ bsmim2 <- function(y,
 #' K-Fold Cross Validation for BSMIM 
 #'
 #'
-#' @param object an object of class 'bsmim' 
+#' @param object An object of class 'bsmim' 
+#' @param kfolds Number of folds for cross validation
+#' @param correct should 'corrected' lppd and rmse be used?
 #' @return An list of class 'bsmim'.
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
 #' @importFrom stats model.matrix sd
@@ -669,7 +684,8 @@ bsmim_crossval2 <- function(object,
 #'
 #' This function takes as input a bsmim object and summarizes the distribution of estimates of the weights, theta.
 #'
-#' @param y obj An object of class bsmim
+#' @param obj An object of class bsmim
+#' @param w Should ws be reported instead of thetas? (ws are original weights before pre-transformation)
 #' @return A list of length M of data.frames summarizing theta estimates.
 #' @author Glen McGee
 #' @export

@@ -7,7 +7,9 @@
 summarize_thetas(obj, w = FALSE)
 }
 \arguments{
-\item{y}{obj An object of class bsmim}
+\item{obj}{An object of class bsmim}
+
+\item{w}{Should ws be reported instead of thetas? (ws are original weights before pre-transformation)}
 }
 \value{
 A list of length M of data.frames summarizing theta estimates.

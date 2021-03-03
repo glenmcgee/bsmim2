@@ -7,7 +7,11 @@
 bsmim_crossval2(object, kfolds = 4, correct = FALSE)
 }
 \arguments{
-\item{object}{an object of class 'bsmim'}
+\item{object}{An object of class 'bsmim'}
+
+\item{kfolds}{Number of folds for cross validation}
+
+\item{correct}{should 'corrected' lppd and rmse be used?}
 }
 \value{
 An list of class 'bsmim'.

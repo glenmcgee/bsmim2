@@ -67,9 +67,31 @@ bsmim2(
 
 \item{horseshoe}{Use the horseshoe prior for indexwise selection (default FALSE)}
 
+\item{spike_slab}{Use spike and slab priors for variable selection on thetastar}
+
+\item{gauss_prior}{Gaussian priors on thetastar T/F}
+
+\item{prior_theta_slab_sd}{SD of slab prior for thetastar}
+
+\item{prior_theta_slab_bounds}{Uniform bounds for inv-uniform slab prior for thetastar}
+
+\item{prior_pi}{Parameters for beta distribution prior for pi in spike & slab}
+
+\item{stepsize_theta}{Step size for random walk thetastar}
+
 \item{gaussian}{Use a Gaussian kernel (TRUE, default) or a polynomial kernel (FALSE)}
 
 \item{polydegree}{Degree of polynomial when polynomial kernel is used.  Only applies when gaussian=FALSE.}
+
+\item{draw_h}{Draw samples of h in mcmc (T/F)}
+
+\item{constraints}{Vector indicating which constraints to impose on thetas: vector of M elements; 0 is unconstrained, 1 is non-negative, 2 is dirichlet}
+
+\item{prior_slabpos}{Shape and rate for gamma prior on thetastar (under constraints=1)}
+
+\item{prior_alphas}{List of alpha hyperparameters for dirichlet prior on weights (under constraints=2)}
+
+\item{prior_slabrho}{Shape and rate for gamma prior on rho^{1/2} (under constraints=2)}
 }
 \value{
 An object of class 'bsmim'.

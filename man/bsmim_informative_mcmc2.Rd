@@ -47,6 +47,14 @@ bsmim_informative_mcmc2(
 
 \item{b_sig}{second hyperparameter for \eqn{\sigma^{-2}}}
 
+\item{s_theta}{hyperparameter for sd of gaussian prior for thetastar}
+
+\item{step_theta}{step size for theta* random walk (move 2)}
+
+\item{a_pi}{first hyperparameter for beta distribution of pi}
+
+\item{b_pi}{second hyperparameter for beta distribution of pi}
+
 \item{poly}{0 = gaussian kernel, 1 = polynomial kernel}
 
 \item{d}{degree of polynomial kernel}
@@ -57,17 +65,23 @@ bsmim_informative_mcmc2(
 
 \item{draw_h}{0 = dont draw h, 1 = draw h}
 
+\item{thetaconstraint}{M-vector for type of constraints (0 is none, 1 is positive, 2 is dirichlet)}
+
+\item{a_slabpos}{shape for gamma distribution (for gamma slab of positivity constraint); default=4}
+
+\item{b_slabpos}{rate for gamma distribution(for gamma slab of positivity constraint); default=2}
+
+\item{alphas}{list of Lm vectors representing alpha hyperparameters for dirichlet prior}
+
+\item{a_rho}{shape for gamma distribution (rho^{1/2})}
+
+\item{b_rho}{rate for gamma distribution (rho^{1/2})}
+
 \item{n_inner}{no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.}
 
 \item{n_outer}{no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.}
 
 \item{n_burn}{no. of MCMC iterations to discard as burn-in}
-
-\item{tau02}{hyperparameter for tau2; classic horseshoe is 1}
-
-\item{kappa}{vector of hyperparameters \eqn{\kappa_m} for \eqn{\theta^*_m}}
-
-\item{horseshoe}{0 = no selection, 1 = componentwise horseshoe priors}
 }
 \description{
 Returns posterior draws for \eqn{\theta},\eqn{\lambda^{-1}},\eqn{\rho},\eqn{\sigma^2},\eqn{\gamma}, as well as the mean(\eqn{h}) and cov(\eqn{h})

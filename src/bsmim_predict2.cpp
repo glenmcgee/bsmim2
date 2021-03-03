@@ -111,7 +111,7 @@ arma::field<arma::mat> get_Kmat(const bool&       poly,               // 0=gauss
 //' @param lambdaBInverse S-vector of lambda^{-1}_B draws
 //' @param sigma2 S-vector of sigma^2 draws
 //' @param weightslist list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-//' @param gridpoints (points by M) matrix containing grid of new index levels for each index m
+//' @param gridpointslist List of (points by L_m) matrix of new values to predict at
 //' @param Xqlist list of L_m-vectors containing exposure quantiles
 //' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 //' @param d degree of polynomial kernel
@@ -130,7 +130,7 @@ List bsmim_predict_old_cpp2(const arma::mat&  yz,               // matrix [Y,Z],
                         const arma::vec&  lambdaBInverse, // S-vector of lambda^{-1}_B draws
                         const arma::vec&  sigma2,           // S-vector of sigma^2 draws
                         const Rcpp::List& weightslist,      // list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-                        const Rcpp::List& gridpointslist,   // (points by M) matrix containing grid of new index levels for each index m
+                        const Rcpp::List& gridpointslist,   // List of (points by L_m) matrix of new values to predict at
                         const Rcpp::List& Xqlist,           // list of L_m-vectors containing componentwise exposure quantiles    
                         const bool&       poly,             // 0=gaussian kernel / 1=polynomial kernel
                         const int&        d,              // degree of polynomial kernel
@@ -269,7 +269,7 @@ List bsmim_predict_old_cpp2(const arma::mat&  yz,               // matrix [Y,Z],
 //' @param lambdaBInverse S-vector of lambda^{-1}_B draws
 //' @param sigma2 S-vector of sigma^2 draws
 //' @param weightslist list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-//' @param gridpoints (points by M) matrix containing grid of new index levels for each index m
+//' @param gridpointslist List of (points by L_m) matrix of new values to predict at
 //' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 //' @param d degree of polynomial kernel
 //' @param randint 0 = no random intercepts, 1 = random intercepts model
@@ -287,7 +287,7 @@ List bsmim_predict_cpp2(const arma::mat&  yz,               // matrix [Y,Z], Z d
                         const arma::vec&  lambdaBInverse, // S-vector of lambda^{-1}_B draws
                         const arma::vec&  sigma2,           // S-vector of sigma^2 draws
                         const Rcpp::List& weightslist,      // list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-                        const Rcpp::List& gridpointslist,   // (points by M) matrix containing grid of new index levels for each index m
+                        const Rcpp::List& gridpointslist,   // List of (points by L_m) matrix of new values to predict at
                         const bool&       poly,             // 0=gaussian kernel / 1=polynomial kernel
                         const int&        d,              // degree of polynomial kernel
                         const bool&       randint,        // 0=no random intercepts / 1=random intercepts
@@ -425,7 +425,7 @@ arma::rowvec col_Medians(const arma::mat&  X) {
 //' @param lambdaBInverse S-vector of lambda^{-1}_B draws
 //' @param sigma2 S-vector of sigma^2 draws
 //' @param weightslist list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-//' @param gridpoints (points by M) matrix containing grid of new index levels for each index m
+//' @param gridpointslist List of (points by L_m) matrix of new values to predict at
 //' @param Xqlist list of L_m-vectors containing exposure quantiles
 //' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 //' @param d degree of polynomial kernel
@@ -444,7 +444,7 @@ List bsmim_predict_approx_old_cpp2(const arma::mat&  yz,               // matrix
                                const arma::vec&  lambdaBInverse, // S-vector of lambda^{-1}_B draws
                                const arma::vec&  sigma2,           // S-vector of sigma^2 draws
                                const Rcpp::List& weightslist,      // list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-                               const Rcpp::List& gridpointslist,   // (points by M) matrix containing grid of new index levels for each index m
+                               const Rcpp::List& gridpointslist,   // List of (points by L_m) matrix of new values to predict at
                                const Rcpp::List& Xqlist,           // list of L_m-vectors containing componentwise exposure quantiles    
                                const bool&       poly,             // 0=gaussian kernel / 1=polynomial kernel
                                const int&        d,              // degree of polynomial kernel
@@ -576,8 +576,7 @@ List bsmim_predict_approx_old_cpp2(const arma::mat&  yz,               // matrix
 //' @param lambdaBInverse S-vector of lambda^{-1}_B draws
 //' @param sigma2 S-vector of sigma^2 draws
 //' @param weightslist list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-//' @param gridpoints (points by M) matrix containing grid of new index levels for each index m
-//' @param Xqlist list of L_m-vectors containing exposure quantiles
+//' @param gridpointslist List of (points by L_m) matrix of new values to predict at
 //' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 //' @param d degree of polynomial kernel
 //' @param randint 0 = no random intercepts, 1 = random intercepts model
@@ -595,7 +594,7 @@ List bsmim_predict_approx_cpp2(const arma::mat&  yz,               // matrix [Y,
                                const arma::vec&  lambdaBInverse, // S-vector of lambda^{-1}_B draws
                                const arma::vec&  sigma2,           // S-vector of sigma^2 draws
                                const Rcpp::List& weightslist,      // list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-                               const Rcpp::List& gridpointslist,   // (points by M) matrix containing grid of new index levels for each index m
+                               const Rcpp::List& gridpointslist,   // List of (points by L_m) matrix of new values to predict at
                                const bool&       poly,             // 0=gaussian kernel / 1=polynomial kernel
                                const int&        d,              // degree of polynomial kernel
                                const bool&       randint,        // 0=no random intercepts / 1=random intercepts
@@ -849,7 +848,7 @@ List bsmim_predict_indexwise_cpp2(const arma::mat&  yz,             // matrix [Y
 //' @param lambdaBInverse S-vector of lambda^{-1}_B draws
 //' @param sigma2 S-vector of sigma^2 draws
 //' @param weightslist list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-//' @param gridpoints (points by M) matrix containing grid of new index levels for each index m
+//' @param gridpointslist List of (points by L_m) matrix of new values to predict at
 //' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 //' @param d degree of polynomial kernel
 //' @param randint 0 = no random intercepts, 1 = random intercepts model
@@ -867,7 +866,7 @@ List bsmim_predict_X_cpp2(const arma::mat&  yz,               // matrix [Y,Z], Z
                         const arma::vec&  lambdaBInverse, // S-vector of lambda^{-1}_B draws
                         const arma::vec&  sigma2,           // S-vector of sigma^2 draws
                         const Rcpp::List& weightslist,      // list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-                        const Rcpp::List& gridpointslist,   // (points by M) matrix containing grid of new index levels for each index m
+                        const Rcpp::List& gridpointslist,   // List of (points by L_m) matrix of new values to predict at
                         const bool&       poly,             // 0=gaussian kernel / 1=polynomial kernel
                         const int&        d,              // degree of polynomial kernel
                         const bool&       randint,        // 0=no random intercepts / 1=random intercepts

@@ -41,6 +41,14 @@ bsmim_spikeslab_gaussprior_mcmc2(
 
 \item{b_sig}{second hyperparameter for \eqn{\sigma^{-2}}}
 
+\item{s_theta}{hyperparameter for sd of gaussian prior for thetastar (slab component)}
+
+\item{step_theta}{step size for theta* random walk (move 2)}
+
+\item{a_pi}{first hyperparameter for beta distribution of pi}
+
+\item{b_pi}{second hyperparameter for beta distribution of pi}
+
 \item{poly}{0 = gaussian kernel, 1 = polynomial kernel}
 
 \item{d}{degree of polynomial kernel}
@@ -56,12 +64,6 @@ bsmim_spikeslab_gaussprior_mcmc2(
 \item{n_outer}{no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.}
 
 \item{n_burn}{no. of MCMC iterations to discard as burn-in}
-
-\item{tau02}{hyperparameter for tau2; classic horseshoe is 1}
-
-\item{kappa}{vector of hyperparameters \eqn{\kappa_m} for \eqn{\theta^*_m}}
-
-\item{horseshoe}{0 = no selection, 1 = componentwise horseshoe priors}
 }
 \description{
 Returns posterior draws for \eqn{\theta},\eqn{\lambda^{-1}},\eqn{\rho},\eqn{\sigma^2},\eqn{\gamma}, as well as the mean(\eqn{h}) and cov(\eqn{h})

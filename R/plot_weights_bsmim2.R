@@ -4,7 +4,7 @@
 #' @param object An object of class bsmim
 #'
 #' @return a list of boxplots.
-#' @improt ggplot2 tidyverse
+#' @import ggplot2 tidyverse
 #' @export
 #'
 

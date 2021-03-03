@@ -9,8 +9,9 @@
 #'
 #' @param object An object of class bsmim
 #' @param points Number of points to predict at
-#' @param qtl M-list of Lm-vectors containing quantiles to set exposure components to
-#' @param newvals optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtl and points
+#' @param qtls M-list of Lm-vectors containing quantiles to set exposure components to
+#' @param newvals optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtls and points
+#' @param approx should the approximate method be used (not recommended)
 #'
 #' @return a dataframe containing predicted values.
 #' @importFrom stats quantile
@@ -154,8 +155,10 @@ predict_hnew_old2 <- function(object,
 #'
 #' @param object An object of class bsmim
 #' @param points Number of points to predict at
-#' @param qtl M-list of Lm-vectors containing quantiles to set exposure components to
-#' @param newX optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtl and points
+#' @param qtl_lims Quantile limits for grid of exposure values
+#' @param qtls M-list of Lm-vectors containing quantiles to set exposure components to
+#' @param newX optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtls and points
+#' @param approx use approximate method (not recommended)
 #'
 #' @return a dataframe containing predicted values.
 #' @export
@@ -310,9 +313,13 @@ predict_hnew2 <- function(object,
 #'
 #' @param object An object of class bsmim
 # #' @param points Number of points to predict at
-#' @param qtl M-list of Lm-vectors containing quantiles to set exposure components to
+#' @param qtl_lims Quantile limits for grid of exposure values
+#' @param qtls M-list of Lm-vectors containing quantiles to set exposure components to
 # #' @param newX optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtl and points
-#'
+#' @param compare_qtl quantile to compare all others to
+#' @param overall should the 'overall' effect be reported
+#' @param approx should the approximate method be used (not recommended)
+#' 
 #' @return a dataframe containing predicted values.
 #' @importFrom stats quantile
 #' @export
@@ -493,6 +500,7 @@ predict_hnew_assoc2 <- function(object,
 #'
 #' @param object An object of class bsmim
 #' @param points Number of points to predict at
+#' @param qtl_lims Quantile limits for grid of exposure values
 #' @param crossM Exposure to set a cross section quantile for
 #' @param qtl quantile for the cross section
 #' @param trueW weights for prediction for comparison to true curve; if NULL then set to posterior mean
@@ -606,6 +614,10 @@ predict_hnew_indexwise2 <- function(object,
 #' @param newY N-vector of new outcomes
 #' @param newZ N by P_z matrix of new covariates
 #' @param newAmat N by K design matrix indicating cluster membership (only used when using random intercepts)
+#' @param rawX set to TRUE if newX needs to first be preprocessed
+#' @param qtl_lims (only used if newX is null) Quantile limits for grid of exposure values 
+#' @param points (only used if newX is null) Number of points to predict at
+#' 
 #' @return a list of (1) a dataframe containing mean, sd and interval for hnew, (2) matrix of samples of hnew, (3) list of exposure grid (newX)
 #' @export
 #'
@@ -647,7 +659,7 @@ predict_hnew_X2 <- function(object,
   }else{
     if(rawX==TRUE){ ## if data havent been pre-processed
       for(m in 1:M){
-        newX[[m]] <- (newX[[m]]-matrix(fit$xscale$mean[[m]],ncol=Lm[m],nrow=nrow(as.matrix(newX[[m]])),byrow=TRUE))/matrix(fit$xscale$sd[[m]],ncol=Lm[m],nrow=nrow(as.matrix(newX[[m]])),byrow=TRUE)
+        newX[[m]] <- (newX[[m]]-matrix(object$xscale$mean[[m]],ncol=Lm[m],nrow=nrow(as.matrix(newX[[m]])),byrow=TRUE))/matrix(object$xscale$sd[[m]],ncol=Lm[m],nrow=nrow(as.matrix(newX[[m]])),byrow=TRUE)
       }
     }
   }

@@ -17,9 +17,11 @@ predict_hnew_old2(
 
 \item{points}{Number of points to predict at}
 
-\item{newvals}{optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtl and points}
+\item{qtls}{M-list of Lm-vectors containing quantiles to set exposure components to}
 
-\item{qtl}{M-list of Lm-vectors containing quantiles to set exposure components to}
+\item{newvals}{optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtls and points}
+
+\item{approx}{should the approximate method be used (not recommended)}
 }
 \value{
 a dataframe containing predicted values.

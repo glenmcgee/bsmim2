@@ -18,9 +18,13 @@ predict_hnew2(
 
 \item{points}{Number of points to predict at}
 
-\item{newX}{optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtl and points}
+\item{qtl_lims}{Quantile limits for grid of exposure values}
 
-\item{qtl}{M-list of Lm-vectors containing quantiles to set exposure components to}
+\item{qtls}{M-list of Lm-vectors containing quantiles to set exposure components to}
+
+\item{newX}{optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtls and points}
+
+\item{approx}{use approximate method (not recommended)}
 }
 \value{
 a dataframe containing predicted values.

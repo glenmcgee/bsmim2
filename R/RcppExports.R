@@ -45,9 +45,11 @@ bsmim_mcmc2 <- function(yz, Xlist, b_lambda, b_lambdaB, a_sig, b_sig, tau02, kap
 #' @param b_sig second hyperparameter for \eqn{\sigma^{-2}}
 #' @param a_theta lower bound of unif for invunif prior on \eqn{\theta^{*2}_m}
 #' @param b_theta upper bound of unif for invunif prior on \eqn{\theta^{*2}_m}
+#' @param step_theta step size for theta* random walk (move 2)
+#' @param a_pi first hyperparameter for beta distribution of pi 
+#' @param b_pi second hyperparameter for beta distribution of pi 
 #' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 #' @param d degree of polynomial kernel
-#' @param horseshoe 0 = no selection, 1 = componentwise horseshoe priors
 #' @param randint 0 = no random intercepts, 1 = random intercepts model
 #' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 #' @param draw_h 0 = dont draw h, 1 = draw h
@@ -73,11 +75,12 @@ bsmim_spikeslab_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_s
 #' @param b_lambdaB hyperparameter for \eqn{\lambda^{-1}_B}
 #' @param a_sig first hyperparameter for \eqn{\sigma^{-2}}
 #' @param b_sig second hyperparameter for \eqn{\sigma^{-2}}
-#' @param tau02 hyperparameter for tau2; classic horseshoe is 1
-#' @param kappa vector of hyperparameters \eqn{\kappa_m} for \eqn{\theta^*_m}
+#' @param s_theta hyperparameter for sd of gaussian prior for thetastar (slab component)
+#' @param step_theta step size for theta* random walk (move 2)
+#' @param a_pi first hyperparameter for beta distribution of pi 
+#' @param b_pi second hyperparameter for beta distribution of pi 
 #' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 #' @param d degree of polynomial kernel
-#' @param horseshoe 0 = no selection, 1 = componentwise horseshoe priors
 #' @param randint 0 = no random intercepts, 1 = random intercepts model
 #' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 #' @param draw_h 0 = dont draw h, 1 = draw h
@@ -103,14 +106,21 @@ bsmim_spikeslab_gaussprior_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB,
 #' @param b_lambdaB hyperparameter for \eqn{\lambda^{-1}_B}
 #' @param a_sig first hyperparameter for \eqn{\sigma^{-2}}
 #' @param b_sig second hyperparameter for \eqn{\sigma^{-2}}
-#' @param tau02 hyperparameter for tau2; classic horseshoe is 1
-#' @param kappa vector of hyperparameters \eqn{\kappa_m} for \eqn{\theta^*_m}
+#' @param s_theta hyperparameter for sd of gaussian prior for thetastar 
+#' @param step_theta step size for theta* random walk (move 2)
+#' @param a_pi first hyperparameter for beta distribution of pi 
+#' @param b_pi second hyperparameter for beta distribution of pi 
 #' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 #' @param d degree of polynomial kernel
-#' @param horseshoe 0 = no selection, 1 = componentwise horseshoe priors
 #' @param randint 0 = no random intercepts, 1 = random intercepts model
 #' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 #' @param draw_h 0 = dont draw h, 1 = draw h
+#' @param thetaconstraint M-vector for type of constraints (0 is none, 1 is positive, 2 is dirichlet)
+#' @param a_slabpos shape for gamma distribution (for gamma slab of positivity constraint); default=4
+#' @param b_slabpos rate for gamma distribution(for gamma slab of positivity constraint); default=2
+#' @param alphas list of Lm vectors representing alpha hyperparameters for dirichlet prior
+#' @param a_rho shape for gamma distribution (rho^{1/2})
+#' @param b_rho rate for gamma distribution (rho^{1/2}) 
 #' @param n_inner no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
 #' @param n_outer no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
 #' @param n_burn no. of MCMC iterations to discard as burn-in
@@ -134,7 +144,7 @@ bsmim_informative_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b
 #' @param lambdaBInverse S-vector of lambda^{-1}_B draws
 #' @param sigma2 S-vector of sigma^2 draws
 #' @param weightslist list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-#' @param gridpoints (points by M) matrix containing grid of new index levels for each index m
+#' @param gridpointslist List of (points by L_m) matrix of new values to predict at
 #' @param Xqlist list of L_m-vectors containing exposure quantiles
 #' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 #' @param d degree of polynomial kernel
@@ -160,7 +170,7 @@ bsmim_predict_old_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma, la
 #' @param lambdaBInverse S-vector of lambda^{-1}_B draws
 #' @param sigma2 S-vector of sigma^2 draws
 #' @param weightslist list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-#' @param gridpoints (points by M) matrix containing grid of new index levels for each index m
+#' @param gridpointslist List of (points by L_m) matrix of new values to predict at
 #' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 #' @param d degree of polynomial kernel
 #' @param randint 0 = no random intercepts, 1 = random intercepts model
@@ -185,7 +195,7 @@ bsmim_predict_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gamma, lambda
 #' @param lambdaBInverse S-vector of lambda^{-1}_B draws
 #' @param sigma2 S-vector of sigma^2 draws
 #' @param weightslist list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-#' @param gridpoints (points by M) matrix containing grid of new index levels for each index m
+#' @param gridpointslist List of (points by L_m) matrix of new values to predict at
 #' @param Xqlist list of L_m-vectors containing exposure quantiles
 #' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 #' @param d degree of polynomial kernel
@@ -211,8 +221,7 @@ bsmim_predict_approx_old_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, ga
 #' @param lambdaBInverse S-vector of lambda^{-1}_B draws
 #' @param sigma2 S-vector of sigma^2 draws
 #' @param weightslist list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-#' @param gridpoints (points by M) matrix containing grid of new index levels for each index m
-#' @param Xqlist list of L_m-vectors containing exposure quantiles
+#' @param gridpointslist List of (points by L_m) matrix of new values to predict at
 #' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 #' @param d degree of polynomial kernel
 #' @param randint 0 = no random intercepts, 1 = random intercepts model
@@ -265,7 +274,7 @@ bsmim_predict_indexwise_cpp2 <- function(yz, Xlist, thetalist, psilist, rho, gam
 #' @param lambdaBInverse S-vector of lambda^{-1}_B draws
 #' @param sigma2 S-vector of sigma^2 draws
 #' @param weightslist list of (S by L_m) weight matrices to apply to exposures X_m (basically A theta^*, so that X*theta*=x(Atheta*)) 
-#' @param gridpoints (points by M) matrix containing grid of new index levels for each index m
+#' @param gridpointslist List of (points by L_m) matrix of new values to predict at
 #' @param poly 0 = gaussian kernel, 1 = polynomial kernel
 #' @param d degree of polynomial kernel
 #' @param randint 0 = no random intercepts, 1 = random intercepts model
