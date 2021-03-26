@@ -22,6 +22,7 @@ plot_weights_bsmim2 <- function(object){
     colnames(dfplot) <- 1:ncol(dfplot)
     dfplot <- gather(dfplot,"l","theta")
     if(ncol(object$theta[[mm]])==1){dfplot$l <- ""}
+    dfplot$l <- factor(dfplot$l,levels=unique(dfplot$l)) ## order x axis
     
     p <- ggplot(dfplot, aes_string(x="l", y="theta"))+
       geom_boxplot()+##color=alpha("black",0.8)
@@ -51,7 +52,8 @@ plot_weights_bsmim2 <- function(object){
     colnames(dfplot) <- 1:ncol(dfplot)
     dfplot <- gather(dfplot,"l","thetastar")
     if(ncol(object$theta[[mm]])==1){dfplot$l <- ""}
-
+    dfplot$l <- factor(dfplot$l,levels=unique(dfplot$l)) ## order x axis
+    
     p <- ggplot(dfplot, aes_string(x="l", y="thetastar"))+
       geom_boxplot()+##color=alpha("black",0.8)
       geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
@@ -68,22 +70,27 @@ plot_weights_bsmim2 <- function(object){
   plots_thetaPOS <- list()
   if(!is.null(object$thetaPOS)){
     for(mm in 1:length(object$thetaPOS)){                 ## loop over m (indices)
+      if(nrow(object$thetaPOS[[mm]])){
+        dfplot <- data.frame(object$thetaPOS[[mm]])
+        colnames(dfplot) <- 1:ncol(dfplot)
+        dfplot <- gather(dfplot,"l","thetaPOS")
+        if(ncol(object$thetaPOS[[mm]])==1){dfplot$l <- ""}
+        dfplot$l <- factor(dfplot$l,levels=unique(dfplot$l)) ## order x axis
+        
+        p <- ggplot(dfplot, aes_string(x="l", y="thetaPOS"))+
+          geom_boxplot()+##color=alpha("black",0.8)
+          geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
+          scale_y_continuous(expression(paste("Component Weights Proportions")),limits=c(0,1)) + 
+          scale_x_discrete("Exposure Component") + 
+          ggtitle("") + 
+          theme_bw() +
+          theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
+        
+        plots_thetaPOS[[mm]] <- p
+      }else{
+        plots_thetaPOS[[mm]] <- NULL
+      }
       
-      dfplot <- data.frame(object$thetaPOS[[mm]])
-      colnames(dfplot) <- 1:ncol(dfplot)
-      dfplot <- gather(dfplot,"l","thetaPOS")
-      if(ncol(object$thetaPOS[[mm]])==1){dfplot$l <- ""}
-      
-      p <- ggplot(dfplot, aes_string(x="l", y="thetaPOS"))+
-        geom_boxplot()+##color=alpha("black",0.8)
-        geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
-        scale_y_continuous(expression(paste("Component Weights Proportions")),limits=c(0,1)) + 
-        scale_x_discrete("Exposure Component") + 
-        ggtitle("") + 
-        theme_bw() +
-        theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
-      
-      plots_thetaPOS[[mm]] <- p
     }
   }
   
@@ -94,12 +101,15 @@ plot_weights_bsmim2 <- function(object){
     dfplot <- data.frame(object$w[[mm]])
     if(!is.null(colnames(object$x[[mm]]))){
       colnames(dfplot) <- colnames(object$x[[mm]])
+    }else if(!is.null(ncol(object$x[[mm]]))){
+      colnames(dfplot) <- 1:ncol(object$x[[mm]])
     }
     dfplot <- gather(dfplot,"l","w")
     if(ncol(object$w[[mm]])==1){
       colnames(dfplot) <- "w"
       dfplot$l <- ""
     }
+    dfplot$l <- factor(dfplot$l,levels=unique(dfplot$l)) ## order x axis
     
     p <- ggplot(dfplot, aes_string(x="l", y="w"))+
       geom_boxplot()+##color=alpha("black",0.8)
@@ -128,12 +138,15 @@ plot_weights_bsmim2 <- function(object){
     dfplot <- data.frame(object$w[[mm]])*sqrt(as.matrix(object$rho)[,mm])
     if(!is.null(colnames(object$x[[mm]]))){
       colnames(dfplot) <- colnames(object$x[[mm]])
+    }else if(!is.null(ncol(object$x[[mm]]))){
+      colnames(dfplot) <- 1:ncol(object$x[[mm]])
     }
     dfplot <- gather(dfplot,"l","wstar")
     if(ncol(object$w[[mm]])==1){
       colnames(dfplot) <- "wstar"
       dfplot$l <- ""
     }
+    dfplot$l <- factor(dfplot$l,levels=unique(dfplot$l)) ## order x axis
     
     p <- ggplot(dfplot, aes_string(x="l", y="wstar"))+
       geom_boxplot()+##color=alpha("black",0.8)
@@ -151,27 +164,34 @@ plot_weights_bsmim2 <- function(object){
   plots_wPOS <- list()
     if(!is.null(object$wPOS)){
     for(mm in 1:length(object$wPOS)){                 ## loop over m (indices)
-      
-      dfplot <- data.frame(object$wPOS[[mm]])
-      if(!is.null(colnames(object$x[[mm]]))){
-        colnames(dfplot) <- colnames(object$x[[mm]])
+      if(!is.null(object$wPOS[[mm]])){ ## error handling
+        dfplot <- data.frame(object$wPOS[[mm]])
+        if(!is.null(colnames(object$x[[mm]]))){
+          colnames(dfplot) <- colnames(object$x[[mm]])
+        }else if(!is.null(ncol(object$x[[mm]]))){
+          colnames(dfplot) <- 1:ncol(object$x[[mm]])
+        }
+        dfplot <- gather(dfplot,"l","w")
+        if(ncol(object$w[[mm]])==1){
+          colnames(dfplot) <- "w"
+          dfplot$l <- ""
+        }
+        dfplot$l <- factor(dfplot$l,levels=unique(dfplot$l)) ## order x axis
+        
+        p <- ggplot(dfplot, aes_string(x="l", y="w"))+
+          geom_boxplot()+##color=alpha("black",0.8)
+          geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
+          scale_y_continuous(expression(paste("Component Proportions")),limits=c(0,1)) + 
+          scale_x_discrete("Exposure Component",limits=colnames(object$x[[mm]])) + 
+          ggtitle("") + 
+          theme_bw() +
+          theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
+        
+        plots_wPOS[[mm]] <- p
+      }else{
+        plots_wPOS[[mm]] <- NULL
       }
-      dfplot <- gather(dfplot,"l","w")
-      if(ncol(object$w[[mm]])==1){
-        colnames(dfplot) <- "w"
-        dfplot$l <- ""
-      }
       
-      p <- ggplot(dfplot, aes_string(x="l", y="w"))+
-        geom_boxplot()+##color=alpha("black",0.8)
-        geom_hline(yintercept=0,linetype=2,alpha=0.8)+ 
-        scale_y_continuous(expression(paste("Component Proportions")),limits=c(0,1)) + 
-        scale_x_discrete("Exposure Component",limits=colnames(object$x[[mm]])) + 
-        ggtitle("") + 
-        theme_bw() +
-        theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
-      
-      plots_wPOS[[mm]] <- p
     }
   }
   
@@ -179,6 +199,7 @@ plot_weights_bsmim2 <- function(object){
   dfplot <- data.frame(as.matrix(object$rho))
   colnames(dfplot) <- 1:ncol(dfplot)
   dfplot <- gather(dfplot,"l","rho")
+  dfplot$l <- factor(dfplot$l,levels=unique(dfplot$l)) ## order x axis
 
   p <- ggplot(dfplot, aes_string(x="l", y="rho"))+
     geom_boxplot()+##color=alpha("black",0.8)
