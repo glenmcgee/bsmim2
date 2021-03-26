@@ -278,7 +278,7 @@ bsmim2 <- function(y,
   
   if(spike_slab==TRUE){
     if(gauss_prior==TRUE){
-      if(sum(constraints==0)){
+      if(sum(constraints)==0){
         fit <- bsmim_spikeslab_gaussprior_mcmc2(yz=cbind(y,Z),
                                                 Xlist= X,
                                                 a_lam=prior_lambda_shaperate[1],
