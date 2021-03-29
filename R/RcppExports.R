@@ -116,7 +116,7 @@ bsmim_spikeslab_gaussprior_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB,
 #' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 #' @param draw_h 0 = dont draw h, 1 = draw h
 #' @param thetaconstraint M-vector for type of constraints (0 is none, 1 is positive, 2 is dirichlet)
-#' @param a_slabpos shape for gamma distribution (for gamma slab of positivity constraint); default=4
+#' @param a_slabpos M-list of shape parameters for gamma distribution (for gamma slab of positivity constraint); default=4; typically all equal. may be unequal for informative priors
 #' @param b_slabpos rate for gamma distribution(for gamma slab of positivity constraint); default=2
 #' @param alphas list of Lm vectors representing alpha hyperparameters for dirichlet prior
 #' @param a_rho shape for gamma distribution (rho^{1/2})

@@ -31,6 +31,7 @@
 #' @param draw_h Draw samples of h in mcmc (T/F)
 #' @param constraints Vector indicating which constraints to impose on thetas: vector of M elements; 0 is unconstrained, 1 is non-negative, 2 is dirichlet 
 #' @param prior_slabpos Shape and rate for gamma prior on thetastar (under constraints=1)
+#' @param prior_slabpos_shape_inf List of multiple shape params for gamma prior on thetastar (under constraints=1) when using informative priors with variable selection. Overrides shape param in prior_slabpos
 #' @param prior_alphas List of alpha hyperparameters for dirichlet prior on weights (under constraints=2)
 #' @param prior_slabrho Shape and rate for gamma prior on rho^{1/2} (under constraints=2)
 #' @param gaussian Use a Gaussian kernel (TRUE, default) or a polynomial kernel (FALSE)
@@ -69,6 +70,7 @@ bsmim2 <- function(y,
                    draw_h=FALSE,
                    constraints=NULL, ## 0,1,2 indicating no, positive, and dirichlet constraints for weight priors
                    prior_slabpos=c(0.4,1.6), ## shape and rate for gamma prior on thetastar (under constraints=1)
+                   prior_slabpos_shape_inf=NULL, ## List of multiple shape params for gamma prior on thetastar (under constraints=1) when using informative priors with variable selection. Overrides shape param in prior_slabpos[1]
                    prior_alphas=NULL,    ## M-List of alpha hyperparameters for dirichlet prior on weights (under constraints=2)
                    prior_slabrho=c(4,2)){ ## shape and rate for gamma prior on rho^{1/2} (under constraints=2)
   
@@ -220,7 +222,14 @@ bsmim2 <- function(y,
       prior_alphas[[mm]] <- rep(1,Lm[mm])
     }
   }
-
+  if(is.null(prior_slabpos_shape_inf)){ ## if null, create list 
+    prior_slabpos_shape_inf <- vector(mode = "list", length = M)
+  }
+  for(mm in 1:M){
+    if(length(prior_slabpos_shape_inf[[mm]])!=Lm[mm]){ ## if wrong size (including empty), fill with default version: prior_slabpos[1]
+      prior_slabpos_shape_inf[[mm]] <- rep(prior_slabpos[1],Lm[mm])
+    }
+  }
   
   ########################
   ## basis construction
@@ -317,7 +326,7 @@ bsmim2 <- function(y,
                                        Bmat=Bmat,
                                        draw_h=draw_h,
                                        thetaconstraint=constraints,
-                                       a_slabpos=prior_slabpos[1], 
+                                       a_slabpos=prior_slabpos_shape_inf, # old version: prior_slabpos[1],  # now is a list to allow informative prior choices
                                        b_slabpos=prior_slabpos[2], 
                                        alphas=prior_alphas,    
                                        a_rho=prior_slabrho[1],     

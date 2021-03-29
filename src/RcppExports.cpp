@@ -93,7 +93,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // bsmim_informative_mcmc2
-List bsmim_informative_mcmc2(const arma::mat& yz, const Rcpp::List& Xlist, const double& a_lam, const double& b_lam, const double& b_lambdaB, const double& a_sig, const double& b_sig, const double& s_theta, const double& step_theta, const double& a_pi, const double& b_pi, const bool& poly, const int& d, const bool& randint, const arma::mat& Bmat, const bool& draw_h, const arma::vec& thetaconstraint, const double a_slabpos, const double b_slabpos, const Rcpp::List& alphas, const double a_rho, const double b_rho, const int& n_inner, const int& n_outer, const int& n_burn);
+List bsmim_informative_mcmc2(const arma::mat& yz, const Rcpp::List& Xlist, const double& a_lam, const double& b_lam, const double& b_lambdaB, const double& a_sig, const double& b_sig, const double& s_theta, const double& step_theta, const double& a_pi, const double& b_pi, const bool& poly, const int& d, const bool& randint, const arma::mat& Bmat, const bool& draw_h, const arma::vec& thetaconstraint, const Rcpp::List& a_slabpos, const double b_slabpos, const Rcpp::List& alphas, const double a_rho, const double b_rho, const int& n_inner, const int& n_outer, const int& n_burn);
 RcppExport SEXP _bsmim2_bsmim_informative_mcmc2(SEXP yzSEXP, SEXP XlistSEXP, SEXP a_lamSEXP, SEXP b_lamSEXP, SEXP b_lambdaBSEXP, SEXP a_sigSEXP, SEXP b_sigSEXP, SEXP s_thetaSEXP, SEXP step_thetaSEXP, SEXP a_piSEXP, SEXP b_piSEXP, SEXP polySEXP, SEXP dSEXP, SEXP randintSEXP, SEXP BmatSEXP, SEXP draw_hSEXP, SEXP thetaconstraintSEXP, SEXP a_slabposSEXP, SEXP b_slabposSEXP, SEXP alphasSEXP, SEXP a_rhoSEXP, SEXP b_rhoSEXP, SEXP n_innerSEXP, SEXP n_outerSEXP, SEXP n_burnSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -115,7 +115,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type Bmat(BmatSEXP);
     Rcpp::traits::input_parameter< const bool& >::type draw_h(draw_hSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type thetaconstraint(thetaconstraintSEXP);
-    Rcpp::traits::input_parameter< const double >::type a_slabpos(a_slabposSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type a_slabpos(a_slabposSEXP);
     Rcpp::traits::input_parameter< const double >::type b_slabpos(b_slabposSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type alphas(alphasSEXP);
     Rcpp::traits::input_parameter< const double >::type a_rho(a_rhoSEXP);

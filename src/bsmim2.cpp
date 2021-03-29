@@ -1544,7 +1544,7 @@ List bsmim_spikeslab_gaussprior_mcmc2(const arma::mat&    yz,         // matrix 
 //' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 //' @param draw_h 0 = dont draw h, 1 = draw h
 //' @param thetaconstraint M-vector for type of constraints (0 is none, 1 is positive, 2 is dirichlet)
-//' @param a_slabpos shape for gamma distribution (for gamma slab of positivity constraint); default=4
+//' @param a_slabpos M-list of shape parameters for gamma distribution (for gamma slab of positivity constraint); default=4; typically all equal. may be unequal for informative priors
 //' @param b_slabpos rate for gamma distribution(for gamma slab of positivity constraint); default=2
 //' @param alphas list of Lm vectors representing alpha hyperparameters for dirichlet prior
 //' @param a_rho shape for gamma distribution (rho^{1/2})
@@ -1572,8 +1572,8 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
                                       const arma::mat&    Bmat,       // block diagonal matrix B indicating cluster membership for random intercepts model
                                       const bool&         draw_h,     // 0=dont sample h, 1= sample h
                                       const arma::vec&    thetaconstraint, // M-vector for type of constraints (0 is none, 1 is positive, 2 is dirichlet)
-                                      const double        a_slabpos,  // shape for gamma distribution (for gamma slab of positivity constraint); default=4
-                                      const double        b_slabpos,  // rate for gamma distribution(for gamma slab of positivity constraint); default=2
+                                      const Rcpp::List&   a_slabpos,  // list of Lm vectors representing shape parameters for gamma distribution (for gamma slab of positivity constraint); default=0.4
+                                      const double        b_slabpos,  // rate for gamma distribution(for gamma slab of positivity constraint); default=1.6
                                       const Rcpp::List&   alphas,     // list of Lm vectors representing alpha hyperparameters for dirichlet prior
                                       const double        a_rho,      // shape for gamma distribution (rho^{1/2}) ## default=?
                                       const double        b_rho,      // rate for gamma distribution (rho^{1/2}) ## default=?
@@ -1595,6 +1595,7 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
   arma::field<arma::vec> delta(M);                // field of L_m vectors representing \delta_m
   arma::mat  XthetaStar(N,M,arma::fill::zeros);   // (N by M) matrix representing [X_1\thetaStar_1,...,X_M\thetaStar_M]
   arma::field<arma::vec> alpha(M);                // field of Lm vectors representing alpha hyperparameters for dirichlet
+  arma::field<arma::vec> a_slabposfield(M);        // field of Lm vectors representing shape parameters for gamma (constraints=1)
   for(int m=0; m<M; m++){
     X[m] = as<arma::mat>(Xlist[m]);                 // mth matrix in X is X_m
     Lvec(m) = X[m].n_cols;                          // mth element of Lvec is L_m (the length of \thetaStar_m)
@@ -1602,8 +1603,9 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
     if(thetaconstraint[m]>0){
       thetaStar[m] = pow(thetaStar[m],2);   // set starting value for \thetaStar_m
     }
-    XthetaStar.col(m) = X[m] * thetaStar[m];
-    alpha[m] = as<arma::vec>(alphas[m]);   // set starting value for \thetaStar_m
+    XthetaStar.col(m) = X[m] * thetaStar[m]; 
+    alpha[m] = as<arma::vec>(alphas[m]);   // alphas for dirichlet
+    a_slabposfield[m] = as<arma::vec>(a_slabpos[m]); // a_slabpos for constraints=1 
     
     arma::vec deltatemp(Lvec(m),arma::fill::ones); // temporary vec with L_m elements to store posteror draws of delta
     delta[m] = deltatemp;                          // set starting value for \delta_m
@@ -1891,11 +1893,11 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
                          
                         // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
                         lltheta = log(tgamma(sumdelta1+a_pi))+log(tgamma(sumM1-sumdelta1+b_pi))
-                        //+ delta[m](l)*R::dgamma(thetaStar[m](l),a_slabpos,1/b_slabpos,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                        //+ delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
                           - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
                           - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
                         if(delta[m](l)==1){ //adding component (avoiding NAs, because dgamma at 0 can give Inf)
-                          lltheta += delta[m](l)*R::dgamma(thetaStar[m](l),a_slabpos,1/b_slabpos,TRUE);
+                          lltheta += delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
                         }  
                         
                         // propose new delta: 1 to 0 or 0 to 1
@@ -1910,7 +1912,7 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
                         if(delta_PROP[m](l)==0){    // if delta_PROP, then theta*=0
                           thetaStar_PROP[m](l) = 0;
                         }else{                      // otherwise draw from Q1 (which is the prior)
-                          thetaStar_PROP[m](l) = rgamma(1,a_slabpos,1/b_slabpos)(0); //takes scale not rate
+                          thetaStar_PROP[m](l) = rgamma(1,a_slabposfield[m](l),1/b_slabpos)(0); //takes scale not rate
                         }
                         // update components that depend on thetaStar
                         XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
@@ -1920,23 +1922,23 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
                         
                         // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
                         lltheta_PROP = log(tgamma(sumdelta_PROP+a_pi))+log(tgamma(sumM1-sumdelta_PROP+b_pi))
-                          //+ delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabpos,1/b_slabpos,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                          //+ delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
                             - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
                             - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
                         if(delta_PROP[m](l)==1){ //adding component (avoiding NAs, because dgamma at 0 can give Inf)
-                          lltheta_PROP += delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabpos,1/b_slabpos,TRUE);
+                          lltheta_PROP += delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
                         }   
                         
                         // difference between proposal distributions: logP(theta_prop,delta_prop|theta,delta)-logP(theta,delta|theta_prop,delta_prop)
-                        logdiff_PROP = //delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabpos,1/b_slabpos,TRUE) //   logP(theta_prop,delta_prop|theta,delta)
-                          //- delta[m](l)*R::dgamma(thetaStar[m](l),a_slabpos,1/b_slabpos,TRUE) // logP(theta,delta|theta_prop,delta_prop)
+                        logdiff_PROP = //delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) //   logP(theta_prop,delta_prop|theta,delta)
+                          //- delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) // logP(theta,delta|theta_prop,delta_prop)
                             +((sumdelta_PROP==0)*log(1)+(sumdelta_PROP!=0)*log(0.5)) // extra difference component because sometimes we must choose move 1.
                             -((sumdelta1==0)*log(1)+(sumdelta1!=0)*log(0.5));
                       
                         if(delta_PROP[m](l)==1){ //adding component to logdiff (avoiding NAs, because dgamma at 0 can give Inf)
-                          logdiff_PROP += delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabpos,1/b_slabpos,TRUE);
+                          logdiff_PROP += delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
                         }else{
-                          logdiff_PROP -= delta[m](l)*R::dgamma(thetaStar[m](l),a_slabpos,1/b_slabpos,TRUE);
+                          logdiff_PROP -= delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
                         }  
                         
                         
@@ -1986,7 +1988,7 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
                           
                           // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
                           // first term is from change of vars  
-                          lltheta = log(thetaStar[m](l))+R::dgamma(thetaStar[m](l),a_slabpos,1/b_slabpos,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                          lltheta = log(thetaStar[m](l))+R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
                           - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
                           - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
                           
@@ -2000,7 +2002,7 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
                           Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
                           
                           // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                          lltheta_PROP = log(thetaStar_PROP[m](l))+R::dgamma(thetaStar_PROP[m](l),a_slabpos,1/b_slabpos,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                          lltheta_PROP = log(thetaStar_PROP[m](l))+R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
                             - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
                             - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
                             
