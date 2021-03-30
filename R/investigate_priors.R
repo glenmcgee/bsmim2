@@ -51,7 +51,7 @@ investigate_priors <- function(num_components=8, # no. components in index
       
       ## for variable selection
       pi <- rbeta(R,prior_pi[1],prior_pi[2])
-      delta <- rbinom(n,1,pi)
+      delta <- rbinom(R,1,pi)
       
       if(gauss_prior==TRUE){ ## gaussian prior on thetastar ( this is standard in the partially constrained version)
         for(l in 1:num_components){
@@ -119,7 +119,7 @@ investigate_priors <- function(num_components=8, # no. components in index
     
     for(l in 1:num_components){
       pi <- rbeta(R,prior_pi[1],prior_pi[2])
-      delta <- rbinom(n,1,pi)
+      delta <- rbinom(R,1,pi)
       slab <- rgamma(R,shape=prior_slabpos_shape_inf[l],rate=prior_slabpos[2])
       thetastar[,l] <- slab*delta+0
     }
