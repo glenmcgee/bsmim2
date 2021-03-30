@@ -67,7 +67,7 @@ bsmim_informative_mcmc2(
 
 \item{thetaconstraint}{M-vector for type of constraints (0 is none, 1 is positive, 2 is dirichlet)}
 
-\item{a_slabpos}{shape for gamma distribution (for gamma slab of positivity constraint); default=4}
+\item{a_slabpos}{M-list of shape parameters for gamma distribution (for gamma slab of positivity constraint); default=4; typically all equal. may be unequal for informative priors}
 
 \item{b_slabpos}{rate for gamma distribution(for gamma slab of positivity constraint); default=2}
 

@@ -32,6 +32,7 @@ bsmim2(
   draw_h = FALSE,
   constraints = NULL,
   prior_slabpos = c(0.4, 1.6),
+  prior_slabpos_shape_inf = NULL,
   prior_alphas = NULL,
   prior_slabrho = c(4, 2)
 )
@@ -88,6 +89,8 @@ bsmim2(
 \item{constraints}{Vector indicating which constraints to impose on thetas: vector of M elements; 0 is unconstrained, 1 is non-negative, 2 is dirichlet}
 
 \item{prior_slabpos}{Shape and rate for gamma prior on thetastar (under constraints=1)}
+
+\item{prior_slabpos_shape_inf}{List of multiple shape params for gamma prior on thetastar (under constraints=1) when using informative priors with variable selection. Overrides shape param in prior_slabpos}
 
 \item{prior_alphas}{List of alpha hyperparameters for dirichlet prior on weights (under constraints=2)}
 
