@@ -20,6 +20,7 @@
 #' @param horseshoe Old version with spike_slab=FALSE: Should we use the horseshoe prior for indexwise selection (default FALSE)
 #' @param kappa Old version with spike_slab=FALSE: scale parameter kappa used in non-horseshoe (sd of thetastar is kappa * nu, nu is chi^2_1)
 #' @param prior_tau Old version with spike_slab=FALSE: Hyperparameter \eqn{\tau_{0}^2}, scale parameter for half Cauchy prior for \eqn{\tau}. (sd of thetastar is tau* nu, where tau is half-cauchy(0,tau_0^2) and nu is half-cauchy(0,1))
+#' @importFrom stats rbeta rbinom rnorm runif rcauchy rchisq rgamma
 #' @return A list including samples of thetastar, theta, thetaPOS, rho, and posterior inclusion probabilities.
 #' @author Glen McGee 
 #' @export
