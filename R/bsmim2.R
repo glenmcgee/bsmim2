@@ -26,6 +26,7 @@
 #' @param prior_theta_slab_bounds Uniform bounds for inv-uniform slab prior for thetastar
 #' @param prior_pi Parameters for beta distribution prior for pi in spike & slab
 #' @param stepsize_theta Step size for random walk thetastar 
+#' @param num_theta_steps Number of steps for thetastar before lambda step (for spike and slab version). default 1
 #' @param gaussian Gaussian Kernel (False=Polynomial)
 #' @param polydegree Degree of polynomial kernel (if not using Gaussian)
 #' @param draw_h Draw samples of h in mcmc (T/F)
@@ -65,6 +66,7 @@ bsmim2 <- function(y,
                    prior_theta_slab_bounds=c(0,100), ## bounds of unif for invunif prior on thetastar^2
                    prior_pi=c(1,1), ## prior for pi in spike & slab
                    stepsize_theta=0.1,
+                   num_theta_steps=1, ## number of steps for thetastar before lambda step (for spike and slab version). default 1
                    gaussian=TRUE,
                    polydegree=2,
                    draw_h=FALSE,
@@ -304,6 +306,7 @@ bsmim2 <- function(y,
                                                 randint=randint,
                                                 Bmat=Bmat,
                                                 draw_h=draw_h,
+                                                num_theta_steps=num_theta_steps,
                                                 n_inner=nthin,
                                                 n_outer=round(niter/nthin),
                                                 n_burn=round(nburn/nthin))
@@ -330,7 +333,8 @@ bsmim2 <- function(y,
                                        b_slabpos=prior_slabpos[2], 
                                        alphas=prior_alphas,    
                                        a_rho=prior_slabrho[1],     
-                                       b_rho=prior_slabrho[2],     
+                                       b_rho=prior_slabrho[2],
+                                       num_theta_steps=num_theta_steps,
                                        n_inner=nthin,
                                        n_outer=round(niter/nthin),
                                        n_burn=round(nburn/nthin))
@@ -354,6 +358,7 @@ bsmim2 <- function(y,
                                    randint=randint,
                                    Bmat=Bmat,
                                    draw_h=draw_h,
+                                   num_theta_steps=num_theta_steps,
                                    n_inner=nthin,
                                    n_outer=round(niter/nthin),
                                    n_burn=round(nburn/nthin))
@@ -539,21 +544,28 @@ bsmim2 <- function(y,
   fit$nthin <- nthin
   fit$prior_sigma <- prior_sigma
   fit$prior_lambda <- prior_lambda
-  fit$prior_lambda_shaperate <- prior_lambda_shaperate
   fit$prior_lambdaB <- prior_lambdaB
+  fit$prior_lambda_shaperate <- prior_lambda_shaperate
   fit$prior_tau <- prior_tau
   fit$kappa <- kappa
   fit$basis.opts.list <- basis.opts.list
   fit$horseshoe <- horseshoe
-  fit$gaussian <- gaussian
-  fit$polydegree <- polydegree
-  fit$draw_h <- draw_h
-  
   fit$spike_slab <- spike_slab
-  fit$prior_pi <- prior_pi
   fit$gauss_prior <- gauss_prior
   fit$prior_theta_slab_sd <- prior_theta_slab_sd
   fit$prior_theta_slab_bounds <- prior_theta_slab_bounds
+  fit$prior_pi <- prior_pi
+  fit$stepsize_theta <- stepsize_theta
+  fit$num_theta_steps <- num_theta_steps
+  fit$gaussian <- gaussian
+  fit$polydegree <- polydegree
+  fit$draw_h <- draw_h
+  fit$constraints <- constraints
+  fit$prior_slabpos <- prior_slabpos
+  fit$prior_slabpos_shape_inf <- prior_slabpos_shape_inf
+  fit$prior_alphas <- prior_alphas
+  fit$prior_slabrho <- prior_slabrho
+
   
   fit$call <- match.call()
   class(fit) <- "bsmim"
@@ -619,13 +631,26 @@ bsmim_crossval2 <- function(object,
                     prior_sigma=object$prior_sigma,
                     prior_lambda=object$prior_lambda,
                     prior_lambdaB=object$prior_lambdaB,
+                    prior_lambda_shaperate=object$prior_lambda_shaperate,
                     prior_tau=object$prior_tau,
                     kappa=object$kappa,
                     basis.opts.list=object$basis.opts.list, 
                     horseshoe=object$horseshoe,
+                    spike_slab=object$spike_slab,
+                    gauss_prior=object$gauss_prior,
+                    prior_theta_slab_sd=object$prior_theta_slab_sd,
+                    prior_theta_slab_bounds=object$prior_theta_slab_bounds,
+                    prior_pi=object$prior_pi,
+                    stepsize_theta=object$stepsize_theta,
+                    num_theta_steps=object$num_theta_steps,
                     gaussian=object$gaussian,
                     polydegree=object$polydegree,
-                    draw_h=correct) ## if using correction, need lppd for full data
+                    draw_h=correct, ## if using correction, need lppd for full data
+                    constraints=object$constraints,
+                    prior_slabpos=object$prior_slabpos,
+                    prior_slabpos_shape_inf=object$prior_slabpos_shape_inf,
+                    prior_alphas=object$prior_alphas,
+                    prior_slabrho=object$prior_slabrho )
     
     ## predict on test set (kth fold)
     pred_k <- predict_hnew_X2(fit_k,
