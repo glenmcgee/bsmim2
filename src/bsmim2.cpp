@@ -570,6 +570,7 @@ List bsmim_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z does not inc
 //' @param randint 0 = no random intercepts, 1 = random intercepts model
 //' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 //' @param draw_h 0 = dont draw h, 1 = draw h
+//' @param num_theta_steps no. of thetastar steps before lambda step (in spike and slab version). default 1
 //' @param n_inner no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
 //' @param n_outer no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
 //' @param n_burn no. of MCMC iterations to discard as burn-in
@@ -593,6 +594,7 @@ List bsmim_spikeslab_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z do
                            const bool&         randint,    // 0=no random intercepts / 1=random intercepts
                            const arma::mat&    Bmat,       // block diagonal matrix B indicating cluster membership for random intercepts model
                            const bool&         draw_h,     // 0=dont sample h, 1= sample h
+                           const int&          num_theta_steps, // number of thetastar steps before lambda step (in spike and slab version). default 1
                            const int&          n_inner,    // no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
                            const int&          n_outer,    // no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
                            const int&          n_burn) {   // no. of MCMC iterations to discard as burn-in
@@ -789,47 +791,49 @@ List bsmim_spikeslab_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z do
             // -------------------------------------------------------------------------- //
             // UPDATE delta and thetaStar via Metropolis Hastings
             
-            // count number of delta==1
-            sumdelta = 0;
-            for(int m=0; m<M; m++){
-              sumdelta += sum(delta[m]);  
-            }
-            
-            // select move type
-            if(sumdelta==0){ // must choose move 1 if all delta==0 (move 2 samples from the deltas equal to 1)
-              MHmove = 1;
-            }else{ // randomly select move type
-              MHmove = Rcpp::rbinom(1,1,0.5)(0);
-            }
-            
-            // Make move 1 or 2
-            if(MHmove==1){  // MHmove version 1
+            for(int thetasteps=0; thetasteps<num_theta_steps; thetasteps++){ // loop over how many thetastar steps before lambda step
               
-              // reset proposals
-              delta_PROP = delta;
-              thetaStar_PROP = thetaStar;
-              
-              // randomly select a component
-              move_which = sample(sum(Lvec), 1)(0);
-              
-              move_id = 0;                                // set index
+              // count number of delta==1
+              sumdelta = 0;
               for(int m=0; m<M; m++){
-                for(int l=0; l<Lvec(m); l++){
-                  
-                  move_id += 1;
-                  if(move_id==move_which){   // make move for randomly selected component
+                sumdelta += sum(delta[m]);  
+              }
+              
+              // select move type
+              if(sumdelta==0){ // must choose move 1 if all delta==0 (move 2 samples from the deltas equal to 1)
+                MHmove = 1;
+              }else{ // randomly select move type
+                MHmove = Rcpp::rbinom(1,1,0.5)(0);
+              }
+              
+              // Make move 1 or 2
+              if(MHmove==1){  // MHmove version 1
+                
+                // reset proposals
+                delta_PROP = delta;
+                thetaStar_PROP = thetaStar;
+                
+                // randomly select a component
+                move_which = sample(sum(Lvec), 1)(0);
+                
+                move_id = 0;                                // set index
+                for(int m=0; m<M; m++){
+                  for(int l=0; l<Lvec(m); l++){
                     
-                    
-                    // Rcout << "MOVE 1: m-" << m << " l-" << l << std::endl;
-                    
-                    // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                    lltheta = log(tgamma(sumdelta+a_pi))+log(tgamma(sum(Lvec)-sumdelta+b_pi))
-                    // + delta[m](l)*(-3*log( fabs(thetaStar[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar[m](l))) & (fabs(thetaStar[m](l))<pow(ar,-0.5))  ) ))  //R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda) 
+                    move_id += 1;
+                    if(move_id==move_which){   // make move for randomly selected component
+                      
+                      
+                      // Rcout << "MOVE 1: m-" << m << " l-" << l << std::endl;
+                      
+                      // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                      lltheta = log(tgamma(sumdelta+a_pi))+log(tgamma(sum(Lvec)-sumdelta+b_pi))
+                      // + delta[m](l)*(-3*log( fabs(thetaStar[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar[m](l))) & (fabs(thetaStar[m](l))<pow(ar,-0.5))  ) ))  //R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda) 
                       - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
                       - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) ); 
-                    if(delta[m](l)==1){//adding component to lltheta (avoiding NAs)
-                      lltheta += delta[m](l)*(-3*log( fabs(thetaStar[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar[m](l))) & (fabs(thetaStar[m](l))<pow(ar,-0.5))  ) ));
-                    }  
+                      if(delta[m](l)==1){//adding component to lltheta (avoiding NAs)
+                        lltheta += delta[m](l)*(-3*log( fabs(thetaStar[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar[m](l))) & (fabs(thetaStar[m](l))<pow(ar,-0.5))  ) ));
+                      }  
                       // propose new delta: 1 to 0 or 0 to 1
                       delta_PROP[m](l) = 1-delta[m](l);
                       if(delta_PROP[m](l)==1){ // adjust sum delta for switch (either increase by 1 or decrease by 1)
@@ -857,123 +861,123 @@ List bsmim_spikeslab_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z do
                       // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
                       lltheta_PROP = log(tgamma(sumdelta_PROP+a_pi))+log(tgamma(sum(Lvec)-sumdelta_PROP+b_pi))
                         // + delta_PROP[m](l)*(-3*log( fabs(thetaStar_PROP[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar_PROP[m](l))) & (fabs(thetaStar_PROP[m](l))<pow(ar,-0.5))  ) ))  //R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda) 
-                          - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-                          - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) ); 
-                      if(delta_PROP[m](l)==1){//adding component to lltheta_PROP (avoiding NAs)
-                        lltheta_PROP += delta_PROP[m](l)*(-3*log( fabs(thetaStar_PROP[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar_PROP[m](l))) & (fabs(thetaStar_PROP[m](l))<pow(ar,-0.5))  ) ));
-                      }    
-                          
-                          
-                      // difference between proposal distributions: logP(theta_prop,delta_prop|theta,delta)-logP(theta,delta|theta_prop,delta_prop)
-                      logdiff_PROP = //delta_PROP[m](l)*(-3*log( fabs(thetaStar_PROP[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar_PROP[m](l))) & (fabs(thetaStar_PROP[m](l))<pow(ar,-0.5))  ) ))  //R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //   logP(theta_prop,delta_prop|theta,delta)
-                        //- delta[m](l)*(-3*log( fabs(thetaStar[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar[m](l))) & (fabs(thetaStar[m](l))<pow(ar,-0.5))  ) ))  //R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE) // logP(theta,delta|theta_prop,delta_prop)
+                        - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                        - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) ); 
+                        if(delta_PROP[m](l)==1){//adding component to lltheta_PROP (avoiding NAs)
+                          lltheta_PROP += delta_PROP[m](l)*(-3*log( fabs(thetaStar_PROP[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar_PROP[m](l))) & (fabs(thetaStar_PROP[m](l))<pow(ar,-0.5))  ) ));
+                        }    
+                        
+                        
+                        // difference between proposal distributions: logP(theta_prop,delta_prop|theta,delta)-logP(theta,delta|theta_prop,delta_prop)
+                        logdiff_PROP = //delta_PROP[m](l)*(-3*log( fabs(thetaStar_PROP[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar_PROP[m](l))) & (fabs(thetaStar_PROP[m](l))<pow(ar,-0.5))  ) ))  //R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //   logP(theta_prop,delta_prop|theta,delta)
+                          //- delta[m](l)*(-3*log( fabs(thetaStar[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar[m](l))) & (fabs(thetaStar[m](l))<pow(ar,-0.5))  ) ))  //R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE) // logP(theta,delta|theta_prop,delta_prop)
                           +((sumdelta_PROP==0)*log(1)+(sumdelta_PROP!=0)*log(0.5)) // extra difference component because sometimes we must choose move 1.
                           -((sumdelta==0)*log(1)+(sumdelta!=0)*log(0.5));
-                    
-                      if(delta_PROP[m](l)==1){ //adding component to logdiff (avoiding NAs)
-                        logdiff_PROP += delta_PROP[m](l)*(-3*log( fabs(thetaStar_PROP[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar_PROP[m](l))) & (fabs(thetaStar_PROP[m](l))<pow(ar,-0.5))  ) ));
-                      }else{
-                        logdiff_PROP -= delta[m](l)*(-3*log( fabs(thetaStar[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar[m](l))) & (fabs(thetaStar[m](l))<pow(ar,-0.5))  ) ));
-                      }  
                           
-                      // log ratio for MH acceptance
-                      logratio = (lltheta_PROP-lltheta)-logdiff_PROP; // the extra (negative!) difference in log proposals since this is MH not metropolis
-                      if(logratio>0){
-                        logratio = 0;
-                      }
-                              
-                              
-                      // accept or reject    
-                      if(logratio >  log(runif(1)(0)) ){    
-                        delta[m](l) = delta_PROP[m](l);
-                        thetaStar[m](l) = thetaStar_PROP[m](l);
-                        // ll = ll_PROP;
-                      }else{
-                        XthetaStar.col(m) = X[m] * thetaStar[m];
-                      }
-                              
-                              
-                              
-                  } // end (if move_id)
-                  
-                  
-                  
-                } // l loop
-              } // m loop
-              
-              
-              
-              
-              
-            }else{ // MHmove version 2
-              
-              move_which = sample(sumdelta, 1)(0);    // randomly select component for move (such that delta==1)
-              
-              move_id = 0;                                // set index
-              for(int m=0; m<M; m++){
-                for(int l=0; l<Lvec(m); l++){
-                  
-                  if(delta[m](l)==1){
-                    move_id += 1;
-                    if(move_id==move_which){   //RANDOM WALK STEP
-                      
-                      // Rcout << "MOVE 2: m-" << m << " l-" << l << std::endl;
-                      
-                      // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                      lltheta = -3*log( fabs(thetaStar[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar[m](l))) & (fabs(thetaStar[m](l))<pow(ar,-0.5))  ) )  //R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
-                      - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-                      - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) ); 
-                      
-                      // propose new theta
-                      thetaStar_PROP[m](l) = rinttruncnorm(thetaStar[m](l),step_theta,-pow(br,-0.5),pow(br,-0.5));  // thetaStar_PROP[m](l) = thetaStar[m](l) + step_theta*rnorm(1)(0);
-                      
-                      // update components that depend on thetaStar
-                      XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
-                      
-                      // update Sigma with proposed thetaStar
-                      Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat); 
-                      
-                      // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                      lltheta_PROP = -3*log( fabs(thetaStar_PROP[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar_PROP[m](l))) & (fabs(thetaStar_PROP[m](l))<pow(ar,-0.5))  ) )  //R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda) 
+                          if(delta_PROP[m](l)==1){ //adding component to logdiff (avoiding NAs)
+                            logdiff_PROP += delta_PROP[m](l)*(-3*log( fabs(thetaStar_PROP[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar_PROP[m](l))) & (fabs(thetaStar_PROP[m](l))<pow(ar,-0.5))  ) ));
+                          }else{
+                            logdiff_PROP -= delta[m](l)*(-3*log( fabs(thetaStar[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar[m](l))) & (fabs(thetaStar[m](l))<pow(ar,-0.5))  ) ));
+                          }  
+                          
+                          // log ratio for MH acceptance
+                          logratio = (lltheta_PROP-lltheta)-logdiff_PROP; // the extra (negative!) difference in log proposals since this is MH not metropolis
+                          if(logratio>0){
+                            logratio = 0;
+                          }
+                          
+                          
+                          // accept or reject    
+                          if(logratio >  log(runif(1)(0)) ){    
+                            delta[m](l) = delta_PROP[m](l);
+                            thetaStar[m](l) = thetaStar_PROP[m](l);
+                            // ll = ll_PROP;
+                          }else{
+                            XthetaStar.col(m) = X[m] * thetaStar[m];
+                          }
+                          
+                          
+                          
+                    } // end (if move_id)
+                    
+                    
+                    
+                  } // l loop
+                } // m loop
+                
+                
+                
+                
+                
+              }else{ // MHmove version 2
+                
+                move_which = sample(sumdelta, 1)(0);    // randomly select component for move (such that delta==1)
+                
+                move_id = 0;                                // set index
+                for(int m=0; m<M; m++){
+                  for(int l=0; l<Lvec(m); l++){
+                    
+                    if(delta[m](l)==1){
+                      move_id += 1;
+                      if(move_id==move_which){   //RANDOM WALK STEP
+                        
+                        // Rcout << "MOVE 2: m-" << m << " l-" << l << std::endl;
+                        
+                        // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                        lltheta = -3*log( fabs(thetaStar[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar[m](l))) & (fabs(thetaStar[m](l))<pow(ar,-0.5))  ) )  //R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
                         - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
                         - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) ); 
                         
-                      logdiff_PROP = logdinttruncnorm(thetaStar_PROP[m](l),thetaStar[m](l),step_theta,-pow(br,-0.5),pow(br,-0.5))
-                        -logdinttruncnorm(thetaStar[m](l),thetaStar_PROP[m](l),step_theta,-pow(br,-0.5),pow(br,-0.5));
+                        // propose new theta
+                        thetaStar_PROP[m](l) = rinttruncnorm(thetaStar[m](l),step_theta,-pow(br,-0.5),pow(br,-0.5));  // thetaStar_PROP[m](l) = thetaStar[m](l) + step_theta*rnorm(1)(0);
                         
-                      // log ratio for MH acceptance
-                      logratio = (lltheta_PROP-lltheta)-logdiff_PROP;
-                      if(logratio>0){
-                        logratio = 0;
-                      }
+                        // update components that depend on thetaStar
+                        XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
                         
-                      // accept or reject    
-                      if(logratio >  log(runif(1)(0)) ){       
-                        thetaStar[m](l) = thetaStar_PROP[m](l);
-                        // ll = ll_PROP;
-                      }else{
-                        XthetaStar.col(m) = X[m] * thetaStar[m];
-                      }
+                        // update Sigma with proposed thetaStar
+                        Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat); 
                         
-                        
-                        
-                    } // end (if move_id)
-                  } // end (if delta=1)
-                  
-                  
-                  
-                } // l loop
-              } // m loop
-            } // end move 2
-            
-            // Reset matrix Sigma and ll
-            Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat); 
-            
-            ll = logLambdaInverse+R::dgamma(exp(logLambdaInverse),a_lam,1/b_lam,1) //-logLambdaInverse*logLambdaInverse/(2*b_lambda) 
-              - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-              - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) ); 
+                        // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                        lltheta_PROP = -3*log( fabs(thetaStar_PROP[m](l))) - log( 1*( (pow(br,-0.5)<fabs(thetaStar_PROP[m](l))) & (fabs(thetaStar_PROP[m](l))<pow(ar,-0.5))  ) )  //R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda) 
+                          - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                          - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) ); 
+                          
+                          logdiff_PROP = logdinttruncnorm(thetaStar_PROP[m](l),thetaStar[m](l),step_theta,-pow(br,-0.5),pow(br,-0.5))
+                            -logdinttruncnorm(thetaStar[m](l),thetaStar_PROP[m](l),step_theta,-pow(br,-0.5),pow(br,-0.5));
+                          
+                          // log ratio for MH acceptance
+                          logratio = (lltheta_PROP-lltheta)-logdiff_PROP;
+                          if(logratio>0){
+                            logratio = 0;
+                          }
+                          
+                          // accept or reject    
+                          if(logratio >  log(runif(1)(0)) ){       
+                            thetaStar[m](l) = thetaStar_PROP[m](l);
+                            // ll = ll_PROP;
+                          }else{
+                            XthetaStar.col(m) = X[m] * thetaStar[m];
+                          }
+                          
+                          
+                          
+                      } // end (if move_id)
+                    } // end (if delta=1)
+                    
+                    
+                    
+                  } // l loop
+                } // m loop
+              } // end move 2
               
+              // Reset matrix Sigma and ll
+              Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat); 
               
+              ll = logLambdaInverse+R::dgamma(exp(logLambdaInverse),a_lam,1/b_lam,1) //-logLambdaInverse*logLambdaInverse/(2*b_lambda) 
+                - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) ); 
+                
+            }  // end loop over number of thetastar updates before lambda step
               
               
               
@@ -1068,6 +1072,7 @@ List bsmim_spikeslab_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z do
 //' @param randint 0 = no random intercepts, 1 = random intercepts model
 //' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 //' @param draw_h 0 = dont draw h, 1 = draw h
+//' @param num_theta_steps no. of thetastar steps before lambda step (in spike and slab version). default 1
 //' @param n_inner no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
 //' @param n_outer no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
 //' @param n_burn no. of MCMC iterations to discard as burn-in
@@ -1090,6 +1095,7 @@ List bsmim_spikeslab_gaussprior_mcmc2(const arma::mat&    yz,         // matrix 
                                       const bool&         randint,    // 0=no random intercepts / 1=random intercepts
                                       const arma::mat&    Bmat,       // block diagonal matrix B indicating cluster membership for random intercepts model
                                       const bool&         draw_h,     // 0=dont sample h, 1= sample h
+                                      const int&          num_theta_steps, // number of thetastar steps before lambda step (in spike and slab version). default 1
                                       const int&          n_inner,    // no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
                                       const int&          n_outer,    // no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
                                       const int&          n_burn) {   // no. of MCMC iterations to discard as burn-in
@@ -1286,169 +1292,172 @@ List bsmim_spikeslab_gaussprior_mcmc2(const arma::mat&    yz,         // matrix 
             // -------------------------------------------------------------------------- //
             // UPDATE delta and thetaStar via Metropolis Hastings
             
-            // count number of delta==1
-            sumdelta = 0;
-            for(int m=0; m<M; m++){
-              sumdelta += sum(delta[m]);
-            }
-            
-            // select move type
-            if(sumdelta==0){ // must choose move 1 if all delta==0 (move 2 samples from the deltas equal to 1)
-              MHmove = 1;
-            }else{ // randomly select move type
-              MHmove = Rcpp::rbinom(1,1,0.5)(0);
-            }
-            
-            // Make move 1 or 2
-            if(MHmove==1){  // MHmove version 1
+            for(int thetasteps=0; thetasteps<num_theta_steps; thetasteps++){ // loop over how many thetastar steps before lambda step
               
-              // reset proposals
-              delta_PROP = delta;
-              thetaStar_PROP = thetaStar;
               
-              // randomly select a component
-              move_which = sample(sum(Lvec), 1)(0);
-              
-              move_id = 0;                                // set index
+              // count number of delta==1
+              sumdelta = 0;
               for(int m=0; m<M; m++){
-                for(int l=0; l<Lvec(m); l++){
-                  
-                  move_id += 1;
-                  if(move_id==move_which){   // make move for randomly selected component
+                sumdelta += sum(delta[m]);
+              }
+              
+              // select move type
+              if(sumdelta==0){ // must choose move 1 if all delta==0 (move 2 samples from the deltas equal to 1)
+                MHmove = 1;
+              }else{ // randomly select move type
+                MHmove = Rcpp::rbinom(1,1,0.5)(0);
+              }
+              
+              // Make move 1 or 2
+              if(MHmove==1){  // MHmove version 1
+                
+                // reset proposals
+                delta_PROP = delta;
+                thetaStar_PROP = thetaStar;
+                
+                // randomly select a component
+                move_which = sample(sum(Lvec), 1)(0);
+                
+                move_id = 0;                                // set index
+                for(int m=0; m<M; m++){
+                  for(int l=0; l<Lvec(m); l++){
                     
-                    // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                    lltheta = log(tgamma(sumdelta+a_pi))+log(tgamma(sum(Lvec)-sumdelta+b_pi))
-                    + delta[m](l)*R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
-                      - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-                      - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
-                      
-                      // propose new delta: 1 to 0 or 0 to 1
-                      delta_PROP[m](l) = 1-delta[m](l);
-                      if(delta_PROP[m](l)==1){ // adjust sum delta for switch (either increase by 1 or decrease by 1)
-                        sumdelta_PROP = sumdelta+1;
-                      }else{
-                        sumdelta_PROP = sumdelta-1;
-                      }
-                      
-                      //propose new theta* (based on new delta)
-                      if(delta_PROP[m](l)==0){    // if delta_PROP, then theta*=0
-                        thetaStar_PROP[m](l) = 0;
-                      }else{                      // otherwise draw from Q1 (which is the prior)
-                        thetaStar_PROP[m](l) = s_theta*rnorm(1)(0);
-                      }
-                      
-                      // update components that depend on thetaStar
-                      XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
-                      
-                      // update Sigma with proposed thetaStar
-                      Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
-                      
-                      // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                      lltheta_PROP = log(tgamma(sumdelta_PROP+a_pi))+log(tgamma(sum(Lvec)-sumdelta_PROP+b_pi))
-                        + delta_PROP[m](l)*R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
-                          - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-                          - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
-                          
-                          // difference between proposal distributions: logP(theta_prop,delta_prop|theta,delta)-logP(theta,delta|theta_prop,delta_prop)
-                          logdiff_PROP = delta_PROP[m](l)*R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //   logP(theta_prop,delta_prop|theta,delta)
-                            - delta[m](l)*R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE) // logP(theta,delta|theta_prop,delta_prop)
-                              +((sumdelta_PROP==0)*log(1)+(sumdelta_PROP!=0)*log(0.5)) // extra difference component because sometimes we must choose move 1.
-                              -((sumdelta==0)*log(1)+(sumdelta!=0)*log(0.5));
-                              
-                              // log ratio for MH acceptance
-                              logratio = (lltheta_PROP-lltheta)-logdiff_PROP; // the extra (negative!) difference in log proposals since this is MH not metropolis
-                              if(logratio>0){
-                                logratio = 0;
-                              }
-                              
-                              // accept or reject
-                              if(logratio >  log(runif(1)(0)) ){
-                                delta[m](l) = delta_PROP[m](l);
-                                thetaStar[m](l) = thetaStar_PROP[m](l);
-                                // ll = ll_PROP;
-                              }else{
-                                XthetaStar.col(m) = X[m] * thetaStar[m];
-                              }
-                              
-                              
-                  } // end (if move_id)
-                  
-                  
-                  
-                } // l loop
-              } // m loop
-              
-              
-              
-              
-              
-            }else{ // MHmove version 2
-              
-              
-              move_which = sample(sumdelta, 1)(0);    // randomly select component for move (such that delta==1)
-              
-              move_id = 0;                                // set index
-              for(int m=0; m<M; m++){
-                for(int l=0; l<Lvec(m); l++){
-                  
-                  if(delta[m](l)==1){
                     move_id += 1;
-                    if(move_id==move_which){   //RANDOM WALK STEP
-                      
+                    if(move_id==move_which){   // make move for randomly selected component
                       
                       // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                      lltheta = R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
-                      - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-                      - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
-                      
-                      // propose new theta
-                      thetaStar_PROP[m](l) = thetaStar[m](l) + step_theta*rnorm(1)(0);
-                      
-                      // update components that depend on thetaStar
-                      XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
-                      
-                      // update Sigma with proposed thetaStar
-                      Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
-                      
-                      // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                      lltheta_PROP = R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                      lltheta = log(tgamma(sumdelta+a_pi))+log(tgamma(sum(Lvec)-sumdelta+b_pi))
+                      + delta[m](l)*R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
                         - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
                         - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
                         
-                        
-                        // log ratio for MH acceptance
-                        logratio = lltheta_PROP-lltheta;
-                        if(logratio>0){
-                          logratio = 0;
-                        }
-                        
-                        // accept or reject
-                        if(logratio >  log(runif(1)(0)) ){
-                          thetaStar[m](l) = thetaStar_PROP[m](l);
-                          // ll = ll_PROP;
+                        // propose new delta: 1 to 0 or 0 to 1
+                        delta_PROP[m](l) = 1-delta[m](l);
+                        if(delta_PROP[m](l)==1){ // adjust sum delta for switch (either increase by 1 or decrease by 1)
+                          sumdelta_PROP = sumdelta+1;
                         }else{
-                          XthetaStar.col(m) = X[m] * thetaStar[m];
+                          sumdelta_PROP = sumdelta-1;
                         }
                         
+                        //propose new theta* (based on new delta)
+                        if(delta_PROP[m](l)==0){    // if delta_PROP, then theta*=0
+                          thetaStar_PROP[m](l) = 0;
+                        }else{                      // otherwise draw from Q1 (which is the prior)
+                          thetaStar_PROP[m](l) = s_theta*rnorm(1)(0);
+                        }
                         
+                        // update components that depend on thetaStar
+                        XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
                         
+                        // update Sigma with proposed thetaStar
+                        Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
+                        
+                        // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                        lltheta_PROP = log(tgamma(sumdelta_PROP+a_pi))+log(tgamma(sum(Lvec)-sumdelta_PROP+b_pi))
+                          + delta_PROP[m](l)*R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                            - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                            - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
+                            
+                            // difference between proposal distributions: logP(theta_prop,delta_prop|theta,delta)-logP(theta,delta|theta_prop,delta_prop)
+                            logdiff_PROP = delta_PROP[m](l)*R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //   logP(theta_prop,delta_prop|theta,delta)
+                              - delta[m](l)*R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE) // logP(theta,delta|theta_prop,delta_prop)
+                                +((sumdelta_PROP==0)*log(1)+(sumdelta_PROP!=0)*log(0.5)) // extra difference component because sometimes we must choose move 1.
+                                -((sumdelta==0)*log(1)+(sumdelta!=0)*log(0.5));
+                                
+                                // log ratio for MH acceptance
+                                logratio = (lltheta_PROP-lltheta)-logdiff_PROP; // the extra (negative!) difference in log proposals since this is MH not metropolis
+                                if(logratio>0){
+                                  logratio = 0;
+                                }
+                                
+                                // accept or reject
+                                if(logratio >  log(runif(1)(0)) ){
+                                  delta[m](l) = delta_PROP[m](l);
+                                  thetaStar[m](l) = thetaStar_PROP[m](l);
+                                  // ll = ll_PROP;
+                                }else{
+                                  XthetaStar.col(m) = X[m] * thetaStar[m];
+                                }
+                                
+                                
                     } // end (if move_id)
-                  } // end (if delta=1)
-                  
-                  
-                  
-                } // l loop
-              } // m loop
-            } // end move 2
-            
-            // Reset matrix Sigma and ll
-            Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat); 
-            
-            ll = logLambdaInverse+R::dgamma(exp(logLambdaInverse),a_lam,1/b_lam,1) //-logLambdaInverse*logLambdaInverse/(2*b_lambda) 
-              - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-              - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) ); 
+                    
+                    
+                    
+                  } // l loop
+                } // m loop
+                
+                
+                
+                
+                
+              }else{ // MHmove version 2
+                
+                
+                move_which = sample(sumdelta, 1)(0);    // randomly select component for move (such that delta==1)
+                
+                move_id = 0;                                // set index
+                for(int m=0; m<M; m++){
+                  for(int l=0; l<Lvec(m); l++){
+                    
+                    if(delta[m](l)==1){
+                      move_id += 1;
+                      if(move_id==move_which){   //RANDOM WALK STEP
+                        
+                        
+                        // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                        lltheta = R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                        - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                        - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
+                        
+                        // propose new theta
+                        thetaStar_PROP[m](l) = thetaStar[m](l) + step_theta*rnorm(1)(0);
+                        
+                        // update components that depend on thetaStar
+                        XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
+                        
+                        // update Sigma with proposed thetaStar
+                        Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
+                        
+                        // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                        lltheta_PROP = R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                          - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                          - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
+                          
+                          
+                          // log ratio for MH acceptance
+                          logratio = lltheta_PROP-lltheta;
+                          if(logratio>0){
+                            logratio = 0;
+                          }
+                          
+                          // accept or reject
+                          if(logratio >  log(runif(1)(0)) ){
+                            thetaStar[m](l) = thetaStar_PROP[m](l);
+                            // ll = ll_PROP;
+                          }else{
+                            XthetaStar.col(m) = X[m] * thetaStar[m];
+                          }
+                          
+                          
+                          
+                      } // end (if move_id)
+                    } // end (if delta=1)
+                    
+                    
+                    
+                  } // l loop
+                } // m loop
+              } // end move 2
               
+              // Reset matrix Sigma and ll
+              Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat); 
               
+              ll = logLambdaInverse+R::dgamma(exp(logLambdaInverse),a_lam,1/b_lam,1) //-logLambdaInverse*logLambdaInverse/(2*b_lambda) 
+                - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) ); 
+                
+            } // end loop over number of thetastar updates before lambda step
               
               
               
@@ -1549,6 +1558,7 @@ List bsmim_spikeslab_gaussprior_mcmc2(const arma::mat&    yz,         // matrix 
 //' @param alphas list of Lm vectors representing alpha hyperparameters for dirichlet prior
 //' @param a_rho shape for gamma distribution (rho^{1/2})
 //' @param b_rho rate for gamma distribution (rho^{1/2}) 
+//' @param num_theta_steps no. of thetastar steps before lambda step (in spike and slab version). default 1
 //' @param n_inner no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
 //' @param n_outer no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
 //' @param n_burn no. of MCMC iterations to discard as burn-in
@@ -1577,6 +1587,7 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
                                       const Rcpp::List&   alphas,     // list of Lm vectors representing alpha hyperparameters for dirichlet prior
                                       const double        a_rho,      // shape for gamma distribution (rho^{1/2}) ## default=?
                                       const double        b_rho,      // rate for gamma distribution (rho^{1/2}) ## default=?
+                                      const int&          num_theta_steps, // number of thetastar steps before lambda step (in spike and slab version). default 1
                                       const int&          n_inner,    // no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
                                       const int&          n_outer,    // no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
                                       const int&          n_burn) {   // no. of MCMC iterations to discard as burn-in
@@ -1855,146 +1866,68 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
             // UPDATE delta and thetaStarFOR POSITIVE CONSTRAINTS
 
             if(sumM1>0){
-              // count number of delta==1
-              sumdelta1 = 0;
-              for(int m=0; m<M; m++){
-                // only loop through components with positivity constraints
-                if(thetaconstraint(m)==1){
-                  sumdelta1 += sum(delta[m]);
-                }
-              }
-
-              // select move type
-              if(sumdelta1==0){ // must choose move 1 if all delta==0 (move 2 samples from the deltas equal to 1)
-                MHmove = 1;
-              }else{ // randomly select move type
-                MHmove = Rcpp::rbinom(1,1,0.5)(0);
-              }
               
-              // Make move 1 or 2
-              if(MHmove==1){  // MHmove version 1
+              for(int thetasteps=0; thetasteps<num_theta_steps; thetasteps++){ // loop over how many thetastar steps before lambda step
                 
-                // reset proposals
-                delta_PROP = delta;
-                thetaStar_PROP = thetaStar;
-                
-                // randomly select a component
-                move_which = sample(sumM1, 1)(0);
-                
-                move_id = 0;                                // set index
+                // count number of delta==1
+                sumdelta1 = 0;
                 for(int m=0; m<M; m++){
-                  if(thetaconstraint(m)==1){// only loop through components with positivity constraints
-                    for(int l=0; l<Lvec(m); l++){
-                      
-                      
-                      move_id += 1;
-                      
-                      if(move_id==move_which){   // make move for randomly selected component
-                         
-                        // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                        lltheta = log(tgamma(sumdelta1+a_pi))+log(tgamma(sumM1-sumdelta1+b_pi))
-                        //+ delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
-                          - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-                          - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
-                        if(delta[m](l)==1){ //adding component (avoiding NAs, because dgamma at 0 can give Inf)
-                          lltheta += delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
-                        }  
-                        
-                        // propose new delta: 1 to 0 or 0 to 1
-                        delta_PROP[m](l) = 1-delta[m](l);
-                        if(delta_PROP[m](l)==1){ // adjust sum delta for switch (either increase by 1 or decrease by 1)
-                          sumdelta_PROP = sumdelta1+1;
-                        }else{
-                          sumdelta_PROP = sumdelta1-1;
-                        }
-                        
-                        //propose new theta* (based on new delta)
-                        if(delta_PROP[m](l)==0){    // if delta_PROP, then theta*=0
-                          thetaStar_PROP[m](l) = 0;
-                        }else{                      // otherwise draw from Q1 (which is the prior)
-                          thetaStar_PROP[m](l) = rgamma(1,a_slabposfield[m](l),1/b_slabpos)(0); //takes scale not rate
-                        }
-                        // update components that depend on thetaStar
-                        XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
-                        
-                        // update Sigma with proposed thetaStar
-                        Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
-                        
-                        // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                        lltheta_PROP = log(tgamma(sumdelta_PROP+a_pi))+log(tgamma(sumM1-sumdelta_PROP+b_pi))
-                          //+ delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
-                            - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-                            - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
-                        if(delta_PROP[m](l)==1){ //adding component (avoiding NAs, because dgamma at 0 can give Inf)
-                          lltheta_PROP += delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
-                        }   
-                        
-                        // difference between proposal distributions: logP(theta_prop,delta_prop|theta,delta)-logP(theta,delta|theta_prop,delta_prop)
-                        logdiff_PROP = //delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) //   logP(theta_prop,delta_prop|theta,delta)
-                          //- delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) // logP(theta,delta|theta_prop,delta_prop)
-                            +((sumdelta_PROP==0)*log(1)+(sumdelta_PROP!=0)*log(0.5)) // extra difference component because sometimes we must choose move 1.
-                            -((sumdelta1==0)*log(1)+(sumdelta1!=0)*log(0.5));
-                      
-                        if(delta_PROP[m](l)==1){ //adding component to logdiff (avoiding NAs, because dgamma at 0 can give Inf)
-                          logdiff_PROP += delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
-                        }else{
-                          logdiff_PROP -= delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
-                        }  
+                  // only loop through components with positivity constraints
+                  if(thetaconstraint(m)==1){
+                    sumdelta1 += sum(delta[m]);
+                  }
+                }
+                
+                // select move type
+                if(sumdelta1==0){ // must choose move 1 if all delta==0 (move 2 samples from the deltas equal to 1)
+                  MHmove = 1;
+                }else{ // randomly select move type
+                  MHmove = Rcpp::rbinom(1,1,0.5)(0);
+                }
+                
+                // Make move 1 or 2
+                if(MHmove==1){  // MHmove version 1
+                  
+                  // reset proposals
+                  delta_PROP = delta;
+                  thetaStar_PROP = thetaStar;
+                  
+                  // randomly select a component
+                  move_which = sample(sumM1, 1)(0);
+                  
+                  move_id = 0;                                // set index
+                  for(int m=0; m<M; m++){
+                    if(thetaconstraint(m)==1){// only loop through components with positivity constraints
+                      for(int l=0; l<Lvec(m); l++){
                         
                         
-                        // log ratio for MH acceptance
-                        logratio = (lltheta_PROP-lltheta)-logdiff_PROP; // the extra (negative!) difference in log proposals since this is MH not metropolis
-                        if(logratio>0){
-                          logratio = 0;
-                        }
-                          
-                        // accept or reject
-                        if(logratio >  log(runif(1)(0)) ){
-                          delta[m](l) = delta_PROP[m](l);
-                          thetaStar[m](l) = thetaStar_PROP[m](l);
-                          // ll = ll_PROP;
-                        }else{
-                          XthetaStar.col(m) = X[m] * thetaStar[m];
-                        }
-                                  
-                                  
-                      } // end (if move_id)
-                      
-                      
-                      
-                    } // l loop
-                  } // end if (thetaconstraint)
-                } // m loop
-                
-                
-                
-                
-                
-              }else{ // MHmove version 2
-                
-                
-                move_which = sample(sumdelta1, 1)(0);    // randomly select component for move (such that delta==1)
-                
-                move_id = 0;                                // set index
-                for(int m=0; m<M; m++){
-                  if(thetaconstraint(m)==1){     // only loop through components with positivity constraints
-                    for(int l=0; l<Lvec(m); l++){
-                      
-                      
-                      if(delta[m](l)==1){
                         move_id += 1;
-                        if(move_id==move_which){   //RANDOM WALK STEP
-                          
+                        
+                        if(move_id==move_which){   // make move for randomly selected component
                           
                           // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                          // first term is from change of vars  
-                          lltheta = log(thetaStar[m](l))+R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                          lltheta = log(tgamma(sumdelta1+a_pi))+log(tgamma(sumM1-sumdelta1+b_pi))
+                          //+ delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
                           - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
                           - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
+                          if(delta[m](l)==1){ //adding component (avoiding NAs, because dgamma at 0 can give Inf)
+                            lltheta += delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
+                          }  
                           
-                          // propose new theta
-                          thetaStar_PROP[m](l) = exp(log(thetaStar[m](l)) + step_theta*rnorm(1)(0));
+                          // propose new delta: 1 to 0 or 0 to 1
+                          delta_PROP[m](l) = 1-delta[m](l);
+                          if(delta_PROP[m](l)==1){ // adjust sum delta for switch (either increase by 1 or decrease by 1)
+                            sumdelta_PROP = sumdelta1+1;
+                          }else{
+                            sumdelta_PROP = sumdelta1-1;
+                          }
                           
+                          //propose new theta* (based on new delta)
+                          if(delta_PROP[m](l)==0){    // if delta_PROP, then theta*=0
+                            thetaStar_PROP[m](l) = 0;
+                          }else{                      // otherwise draw from Q1 (which is the prior)
+                            thetaStar_PROP[m](l) = rgamma(1,a_slabposfield[m](l),1/b_slabpos)(0); //takes scale not rate
+                          }
                           // update components that depend on thetaStar
                           XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
                           
@@ -2002,36 +1935,118 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
                           Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
                           
                           // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                          lltheta_PROP = log(thetaStar_PROP[m](l))+R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                          lltheta_PROP = log(tgamma(sumdelta_PROP+a_pi))+log(tgamma(sumM1-sumdelta_PROP+b_pi))
+                            //+ delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                            - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                            - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
+                            if(delta_PROP[m](l)==1){ //adding component (avoiding NAs, because dgamma at 0 can give Inf)
+                              lltheta_PROP += delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
+                            }   
+                            
+                            // difference between proposal distributions: logP(theta_prop,delta_prop|theta,delta)-logP(theta,delta|theta_prop,delta_prop)
+                            logdiff_PROP = //delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) //   logP(theta_prop,delta_prop|theta,delta)
+                              //- delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) // logP(theta,delta|theta_prop,delta_prop)
+                              +((sumdelta_PROP==0)*log(1)+(sumdelta_PROP!=0)*log(0.5)) // extra difference component because sometimes we must choose move 1.
+                              -((sumdelta1==0)*log(1)+(sumdelta1!=0)*log(0.5));
+                              
+                              if(delta_PROP[m](l)==1){ //adding component to logdiff (avoiding NAs, because dgamma at 0 can give Inf)
+                                logdiff_PROP += delta_PROP[m](l)*R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
+                              }else{
+                                logdiff_PROP -= delta[m](l)*R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE);
+                              }  
+                              
+                              
+                              // log ratio for MH acceptance
+                              logratio = (lltheta_PROP-lltheta)-logdiff_PROP; // the extra (negative!) difference in log proposals since this is MH not metropolis
+                              if(logratio>0){
+                                logratio = 0;
+                              }
+                              
+                              // accept or reject
+                              if(logratio >  log(runif(1)(0)) ){
+                                delta[m](l) = delta_PROP[m](l);
+                                thetaStar[m](l) = thetaStar_PROP[m](l);
+                                // ll = ll_PROP;
+                              }else{
+                                XthetaStar.col(m) = X[m] * thetaStar[m];
+                              }
+                              
+                              
+                        } // end (if move_id)
+                        
+                        
+                        
+                      } // l loop
+                    } // end if (thetaconstraint)
+                  } // m loop
+                  
+                  
+                  
+                  
+                  
+                }else{ // MHmove version 2
+                  
+                  
+                  move_which = sample(sumdelta1, 1)(0);    // randomly select component for move (such that delta==1)
+                  
+                  move_id = 0;                                // set index
+                  for(int m=0; m<M; m++){
+                    if(thetaconstraint(m)==1){     // only loop through components with positivity constraints
+                      for(int l=0; l<Lvec(m); l++){
+                        
+                        
+                        if(delta[m](l)==1){
+                          move_id += 1;
+                          if(move_id==move_which){   //RANDOM WALK STEP
+                            
+                            
+                            // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                            // first term is from change of vars  
+                            lltheta = log(thetaStar[m](l))+R::dgamma(thetaStar[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
                             - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
                             - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
                             
+                            // propose new theta
+                            thetaStar_PROP[m](l) = exp(log(thetaStar[m](l)) + step_theta*rnorm(1)(0));
                             
-                            // log ratio for MH acceptance
-                            logratio = lltheta_PROP-lltheta;
-                            if(logratio>0){
-                              logratio = 0;
-                            }
+                            // update components that depend on thetaStar
+                            XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
                             
-                            // accept or reject
-                            if(logratio >  log(runif(1)(0)) ){
-                              thetaStar[m](l) = thetaStar_PROP[m](l);
-                              // ll = ll_PROP;
-                            }else{
-                              XthetaStar.col(m) = X[m] * thetaStar[m];
-                            }
+                            // update Sigma with proposed thetaStar
+                            Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
                             
-                            
-                            
-                        } // end (if move_id)
-                      } // end (if delta=1)
-                    } // l loop
-                    
-                    
-                  } // end (if thetaconstraint) 
-                } // m loop
-              } // end move 2
-              
+                            // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                            lltheta_PROP = log(thetaStar_PROP[m](l))+R::dgamma(thetaStar_PROP[m](l),a_slabposfield[m](l),1/b_slabpos,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                              - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                              - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
+                              
+                              
+                              // log ratio for MH acceptance
+                              logratio = lltheta_PROP-lltheta;
+                              if(logratio>0){
+                                logratio = 0;
+                              }
+                              
+                              // accept or reject
+                              if(logratio >  log(runif(1)(0)) ){
+                                thetaStar[m](l) = thetaStar_PROP[m](l);
+                                // ll = ll_PROP;
+                              }else{
+                                XthetaStar.col(m) = X[m] * thetaStar[m];
+                              }
+                              
+                              
+                              
+                          } // end (if move_id)
+                        } // end (if delta=1)
+                      } // l loop
+                      
+                      
+                    } // end (if thetaconstraint) 
+                  } // m loop
+                } // end move 2
+                
+              } //end loop over number of theta steps
             } // end positive constraint update
             
             
@@ -2042,167 +2057,172 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
             // UPDATE delta and thetaStar via Metropolis Hastings NO CONSTRAINTS
             
             if(sumM0>1){
-              // count number of delta==1
-              sumdelta0 = 0;
-              for(int m=0; m<M; m++){
-                // only loop through components with no constraints
-                if(thetaconstraint(m)==0){
-                  sumdelta0 += sum(delta[m]);
+              
+              for(int thetasteps=0; thetasteps<num_theta_steps; thetasteps++){ // loop over how many thetastar steps before lambda step
+                
+                // count number of delta==1
+                sumdelta0 = 0;
+                for(int m=0; m<M; m++){
+                  // only loop through components with no constraints
+                  if(thetaconstraint(m)==0){
+                    sumdelta0 += sum(delta[m]);
+                  }
                 }
-              }
-              
-              // select move type
-              if(sumdelta0==0){ // must choose move 1 if all delta==0 (move 2 samples from the deltas equal to 1)
-                MHmove = 1;
-              }else{ // randomly select move type
-                MHmove = Rcpp::rbinom(1,1,0.5)(0);
-              }
-              
-              // Make move 1 or 2
-              if(MHmove==1){  // MHmove version 1
                 
-                // reset proposals
-                delta_PROP = delta;
-                thetaStar_PROP = thetaStar;
+                // select move type
+                if(sumdelta0==0){ // must choose move 1 if all delta==0 (move 2 samples from the deltas equal to 1)
+                  MHmove = 1;
+                }else{ // randomly select move type
+                  MHmove = Rcpp::rbinom(1,1,0.5)(0);
+                }
                 
-                // randomly select a component
-                move_which = sample(sumM0, 1)(0);
-                
-                move_id = 0;                                // set index
-                for(int m=0; m<M; m++){
-                  if(thetaconstraint(m)==0){// only loop through components with no constraints
-                    for(int l=0; l<Lvec(m); l++){
-                      
-                      move_id += 1;
-                      if(move_id==move_which){   // make move for randomly selected component
+                // Make move 1 or 2
+                if(MHmove==1){  // MHmove version 1
+                  
+                  // reset proposals
+                  delta_PROP = delta;
+                  thetaStar_PROP = thetaStar;
+                  
+                  // randomly select a component
+                  move_which = sample(sumM0, 1)(0);
+                  
+                  move_id = 0;                                // set index
+                  for(int m=0; m<M; m++){
+                    if(thetaconstraint(m)==0){// only loop through components with no constraints
+                      for(int l=0; l<Lvec(m); l++){
                         
-                        // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                        lltheta = log(tgamma(sumdelta0+a_pi))+log(tgamma(sumM0-sumdelta0+b_pi))
-                        + delta[m](l)*R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
-                          - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-                          - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
-                          
-                        // propose new delta: 1 to 0 or 0 to 1
-                        delta_PROP[m](l) = 1-delta[m](l);
-                        if(delta_PROP[m](l)==1){ // adjust sum delta for switch (either increase by 1 or decrease by 1)
-                          sumdelta_PROP = sumdelta0+1;
-                        }else{
-                          sumdelta_PROP = sumdelta0-1;
-                        }
-                        
-                        //propose new theta* (based on new delta)
-                        if(delta_PROP[m](l)==0){    // if delta_PROP, then theta*=0
-                          thetaStar_PROP[m](l) = 0;
-                        }else{                      // otherwise draw from Q1 (which is the prior)
-                          thetaStar_PROP[m](l) = s_theta*rnorm(1)(0);
-                        }
-                        
-                        // update components that depend on thetaStar
-                        XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
-                        
-                        // update Sigma with proposed thetaStar
-                        Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
-                        
-                        // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                        lltheta_PROP = log(tgamma(sumdelta_PROP+a_pi))+log(tgamma(sumM0-sumdelta_PROP+b_pi))
-                          + delta_PROP[m](l)*R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
-                            - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-                            - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
-                            
-                        // difference between proposal distributions: logP(theta_prop,delta_prop|theta,delta)-logP(theta,delta|theta_prop,delta_prop)
-                        logdiff_PROP = delta_PROP[m](l)*R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //   logP(theta_prop,delta_prop|theta,delta)
-                          - delta[m](l)*R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE) // logP(theta,delta|theta_prop,delta_prop)
-                            +((sumdelta_PROP==0)*log(1)+(sumdelta_PROP!=0)*log(0.5)) // extra difference component because sometimes we must choose move 1.
-                            -((sumdelta0==0)*log(1)+(sumdelta0!=0)*log(0.5));
-                            
-                        // log ratio for MH acceptance
-                        logratio = (lltheta_PROP-lltheta)-logdiff_PROP; // the extra (negative!) difference in log proposals since this is MH not metropolis
-                        if(logratio>0){
-                          logratio = 0;
-                        }
-                        
-                        // accept or reject
-                        if(logratio >  log(runif(1)(0)) ){
-                          delta[m](l) = delta_PROP[m](l);
-                          thetaStar[m](l) = thetaStar_PROP[m](l);
-                          // ll = ll_PROP;
-                        }else{
-                          XthetaStar.col(m) = X[m] * thetaStar[m];
-                        }
-                                
-                                
-                      } // end (if move_id)
-                      
-                      
-                      
-                    } // l loop
-                  } // end if (thetaconstraint)
-                } // m loop
-                
-                
-                
-                
-                
-              }else{ // MHmove version 2
-                
-                
-                move_which = sample(sumdelta0, 1)(0);    // randomly select component for move (such that delta==1)
-                
-                move_id = 0;                                // set index
-                for(int m=0; m<M; m++){
-                  if(thetaconstraint(m)==0){// only loop through components with no constraints
-                    for(int l=0; l<Lvec(m); l++){
-                      
-                      if(delta[m](l)==1){
                         move_id += 1;
-                        if(move_id==move_which){   //RANDOM WALK STEP
-                          
+                        if(move_id==move_which){   // make move for randomly selected component
                           
                           // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                          lltheta = R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
-                          - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
-                          - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
-                          
-                          // propose new theta
-                          thetaStar_PROP[m](l) = thetaStar[m](l) + step_theta*rnorm(1)(0);
-                          
-                          // update components that depend on thetaStar
-                          XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
-                          
-                          // update Sigma with proposed thetaStar
-                          Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
-                          
-                          // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
-                          lltheta_PROP = R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                          lltheta = log(tgamma(sumdelta0+a_pi))+log(tgamma(sumM0-sumdelta0+b_pi))
+                          + delta[m](l)*R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
                             - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
                             - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
                             
+                            // propose new delta: 1 to 0 or 0 to 1
+                            delta_PROP[m](l) = 1-delta[m](l);
+                            if(delta_PROP[m](l)==1){ // adjust sum delta for switch (either increase by 1 or decrease by 1)
+                              sumdelta_PROP = sumdelta0+1;
+                            }else{
+                              sumdelta_PROP = sumdelta0-1;
+                            }
                             
-                          // log ratio for MH acceptance
-                          logratio = lltheta_PROP-lltheta;
-                          if(logratio>0){
-                            logratio = 0;
-                          }
-                          
-                          // accept or reject
-                          if(logratio >  log(runif(1)(0)) ){
-                            thetaStar[m](l) = thetaStar_PROP[m](l);
-                            // ll = ll_PROP;
-                          }else{
-                            XthetaStar.col(m) = X[m] * thetaStar[m];
-                          }
+                            //propose new theta* (based on new delta)
+                            if(delta_PROP[m](l)==0){    // if delta_PROP, then theta*=0
+                              thetaStar_PROP[m](l) = 0;
+                            }else{                      // otherwise draw from Q1 (which is the prior)
+                              thetaStar_PROP[m](l) = s_theta*rnorm(1)(0);
+                            }
                             
+                            // update components that depend on thetaStar
+                            XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
                             
+                            // update Sigma with proposed thetaStar
+                            Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
                             
+                            // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                            lltheta_PROP = log(tgamma(sumdelta_PROP+a_pi))+log(tgamma(sumM0-sumdelta_PROP+b_pi))
+                              + delta_PROP[m](l)*R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE)//+(1-delta[m][l])*log(1)//-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                                - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                                - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
+                                
+                                // difference between proposal distributions: logP(theta_prop,delta_prop|theta,delta)-logP(theta,delta|theta_prop,delta_prop)
+                                logdiff_PROP = delta_PROP[m](l)*R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //   logP(theta_prop,delta_prop|theta,delta)
+                                  - delta[m](l)*R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE) // logP(theta,delta|theta_prop,delta_prop)
+                                    +((sumdelta_PROP==0)*log(1)+(sumdelta_PROP!=0)*log(0.5)) // extra difference component because sometimes we must choose move 1.
+                                    -((sumdelta0==0)*log(1)+(sumdelta0!=0)*log(0.5));
+                                    
+                                    // log ratio for MH acceptance
+                                    logratio = (lltheta_PROP-lltheta)-logdiff_PROP; // the extra (negative!) difference in log proposals since this is MH not metropolis
+                                    if(logratio>0){
+                                      logratio = 0;
+                                    }
+                                    
+                                    // accept or reject
+                                    if(logratio >  log(runif(1)(0)) ){
+                                      delta[m](l) = delta_PROP[m](l);
+                                      thetaStar[m](l) = thetaStar_PROP[m](l);
+                                      // ll = ll_PROP;
+                                    }else{
+                                      XthetaStar.col(m) = X[m] * thetaStar[m];
+                                    }
+                                    
+                                    
                         } // end (if move_id)
-                      } // end (if delta=1)
-                      
-                      
-                      
-                    } // l loop
-                  } // end if (thetaconstraint)
-                } // m loop
-              } // end move 2
+                        
+                        
+                        
+                      } // l loop
+                    } // end if (thetaconstraint)
+                  } // m loop
+                  
+                  
+                  
+                  
+                  
+                }else{ // MHmove version 2
+                  
+                  
+                  move_which = sample(sumdelta0, 1)(0);    // randomly select component for move (such that delta==1)
+                  
+                  move_id = 0;                                // set index
+                  for(int m=0; m<M; m++){
+                    if(thetaconstraint(m)==0){// only loop through components with no constraints
+                      for(int l=0; l<Lvec(m); l++){
+                        
+                        if(delta[m](l)==1){
+                          move_id += 1;
+                          if(move_id==move_which){   //RANDOM WALK STEP
+                            
+                            
+                            // compute lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                            lltheta = R::dnorm(thetaStar[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                            - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                            - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
+                            
+                            // propose new theta
+                            thetaStar_PROP[m](l) = thetaStar[m](l) + step_theta*rnorm(1)(0);
+                            
+                            // update components that depend on thetaStar
+                            XthetaStar.col(m) = X[m] * thetaStar_PROP[m];                          // update XthetaStar with proposed thetaStar
+                            
+                            // update Sigma with proposed thetaStar
+                            Vcomps = get_Vcomps(poly, d, N, P_z, yz, logLambdaInverse, XthetaStar, randint, logLambdaBInverse, Bmat);
+                            
+                            // proposed lltheta (excludes the lambda prior, and the other thetas/deltas since they are unchanged)
+                            lltheta_PROP = R::dnorm(thetaStar_PROP[m](l),0.0,s_theta,TRUE) //-logLambdaInverse*logLambdaInverse/(2*b_lambda)
+                              - arma::accu(log(Vcomps[3].diag())) - arma::accu(log(Vcomps[4].diag()))       // computing determinants via cholesky decompositions
+                              - ( 0.5 * (N - P_z) + a_sig ) * log( b_sig + 0.5*Vcomps[1](0,0)-0.5*Vcomps[1](1,0) );
+                              
+                              
+                              // log ratio for MH acceptance
+                              logratio = lltheta_PROP-lltheta;
+                              if(logratio>0){
+                                logratio = 0;
+                              }
+                              
+                              // accept or reject
+                              if(logratio >  log(runif(1)(0)) ){
+                                thetaStar[m](l) = thetaStar_PROP[m](l);
+                                // ll = ll_PROP;
+                              }else{
+                                XthetaStar.col(m) = X[m] * thetaStar[m];
+                              }
+                              
+                              
+                              
+                          } // end (if move_id)
+                        } // end (if delta=1)
+                        
+                        
+                        
+                      } // l loop
+                    } // end if (thetaconstraint)
+                  } // m loop
+                } // end move 2
+                
+              } // end loop over number of thetastar updates
             } // end delta/theta update (no constraints)
             
             // Reset matrix Sigma and ll
