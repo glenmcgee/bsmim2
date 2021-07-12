@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // bsmim_mcmc2
 List bsmim_mcmc2(const arma::mat& yz, const Rcpp::List& Xlist, const double& b_lambda, const double& b_lambdaB, const double& a_sig, const double& b_sig, const double& tau02, const arma::vec& kappa, const bool& poly, const int& d, const bool& horseshoe, const bool& randint, const arma::mat& Bmat, const bool& draw_h, const int& n_inner, const int& n_outer, const int& n_burn);
 RcppExport SEXP _bsmim2_bsmim_mcmc2(SEXP yzSEXP, SEXP XlistSEXP, SEXP b_lambdaSEXP, SEXP b_lambdaBSEXP, SEXP a_sigSEXP, SEXP b_sigSEXP, SEXP tau02SEXP, SEXP kappaSEXP, SEXP polySEXP, SEXP dSEXP, SEXP horseshoeSEXP, SEXP randintSEXP, SEXP BmatSEXP, SEXP draw_hSEXP, SEXP n_innerSEXP, SEXP n_outerSEXP, SEXP n_burnSEXP) {
@@ -34,8 +39,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // bsmim_spikeslab_mcmc2
-List bsmim_spikeslab_mcmc2(const arma::mat& yz, const Rcpp::List& Xlist, const double& a_lam, const double& b_lam, const double& b_lambdaB, const double& a_sig, const double& b_sig, const double& a_theta, const double& b_theta, const double& step_theta, const double& a_pi, const double& b_pi, const bool& poly, const int& d, const bool& randint, const arma::mat& Bmat, const bool& draw_h, const int& n_inner, const int& n_outer, const int& n_burn);
-RcppExport SEXP _bsmim2_bsmim_spikeslab_mcmc2(SEXP yzSEXP, SEXP XlistSEXP, SEXP a_lamSEXP, SEXP b_lamSEXP, SEXP b_lambdaBSEXP, SEXP a_sigSEXP, SEXP b_sigSEXP, SEXP a_thetaSEXP, SEXP b_thetaSEXP, SEXP step_thetaSEXP, SEXP a_piSEXP, SEXP b_piSEXP, SEXP polySEXP, SEXP dSEXP, SEXP randintSEXP, SEXP BmatSEXP, SEXP draw_hSEXP, SEXP n_innerSEXP, SEXP n_outerSEXP, SEXP n_burnSEXP) {
+List bsmim_spikeslab_mcmc2(const arma::mat& yz, const Rcpp::List& Xlist, const double& a_lam, const double& b_lam, const double& b_lambdaB, const double& a_sig, const double& b_sig, const double& a_theta, const double& b_theta, const double& step_theta, const double& a_pi, const double& b_pi, const bool& poly, const int& d, const bool& randint, const arma::mat& Bmat, const bool& draw_h, const int& num_theta_steps, const int& n_inner, const int& n_outer, const int& n_burn);
+RcppExport SEXP _bsmim2_bsmim_spikeslab_mcmc2(SEXP yzSEXP, SEXP XlistSEXP, SEXP a_lamSEXP, SEXP b_lamSEXP, SEXP b_lambdaBSEXP, SEXP a_sigSEXP, SEXP b_sigSEXP, SEXP a_thetaSEXP, SEXP b_thetaSEXP, SEXP step_thetaSEXP, SEXP a_piSEXP, SEXP b_piSEXP, SEXP polySEXP, SEXP dSEXP, SEXP randintSEXP, SEXP BmatSEXP, SEXP draw_hSEXP, SEXP num_theta_stepsSEXP, SEXP n_innerSEXP, SEXP n_outerSEXP, SEXP n_burnSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -56,16 +61,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool& >::type randint(randintSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Bmat(BmatSEXP);
     Rcpp::traits::input_parameter< const bool& >::type draw_h(draw_hSEXP);
+    Rcpp::traits::input_parameter< const int& >::type num_theta_steps(num_theta_stepsSEXP);
     Rcpp::traits::input_parameter< const int& >::type n_inner(n_innerSEXP);
     Rcpp::traits::input_parameter< const int& >::type n_outer(n_outerSEXP);
     Rcpp::traits::input_parameter< const int& >::type n_burn(n_burnSEXP);
-    rcpp_result_gen = Rcpp::wrap(bsmim_spikeslab_mcmc2(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, a_theta, b_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn));
+    rcpp_result_gen = Rcpp::wrap(bsmim_spikeslab_mcmc2(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, a_theta, b_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, num_theta_steps, n_inner, n_outer, n_burn));
     return rcpp_result_gen;
 END_RCPP
 }
 // bsmim_spikeslab_gaussprior_mcmc2
-List bsmim_spikeslab_gaussprior_mcmc2(const arma::mat& yz, const Rcpp::List& Xlist, const double& a_lam, const double& b_lam, const double& b_lambdaB, const double& a_sig, const double& b_sig, const double& s_theta, const double& step_theta, const double& a_pi, const double& b_pi, const bool& poly, const int& d, const bool& randint, const arma::mat& Bmat, const bool& draw_h, const int& n_inner, const int& n_outer, const int& n_burn);
-RcppExport SEXP _bsmim2_bsmim_spikeslab_gaussprior_mcmc2(SEXP yzSEXP, SEXP XlistSEXP, SEXP a_lamSEXP, SEXP b_lamSEXP, SEXP b_lambdaBSEXP, SEXP a_sigSEXP, SEXP b_sigSEXP, SEXP s_thetaSEXP, SEXP step_thetaSEXP, SEXP a_piSEXP, SEXP b_piSEXP, SEXP polySEXP, SEXP dSEXP, SEXP randintSEXP, SEXP BmatSEXP, SEXP draw_hSEXP, SEXP n_innerSEXP, SEXP n_outerSEXP, SEXP n_burnSEXP) {
+List bsmim_spikeslab_gaussprior_mcmc2(const arma::mat& yz, const Rcpp::List& Xlist, const double& a_lam, const double& b_lam, const double& b_lambdaB, const double& a_sig, const double& b_sig, const double& s_theta, const double& step_theta, const double& a_pi, const double& b_pi, const bool& poly, const int& d, const bool& randint, const arma::mat& Bmat, const bool& draw_h, const int& num_theta_steps, const int& n_inner, const int& n_outer, const int& n_burn);
+RcppExport SEXP _bsmim2_bsmim_spikeslab_gaussprior_mcmc2(SEXP yzSEXP, SEXP XlistSEXP, SEXP a_lamSEXP, SEXP b_lamSEXP, SEXP b_lambdaBSEXP, SEXP a_sigSEXP, SEXP b_sigSEXP, SEXP s_thetaSEXP, SEXP step_thetaSEXP, SEXP a_piSEXP, SEXP b_piSEXP, SEXP polySEXP, SEXP dSEXP, SEXP randintSEXP, SEXP BmatSEXP, SEXP draw_hSEXP, SEXP num_theta_stepsSEXP, SEXP n_innerSEXP, SEXP n_outerSEXP, SEXP n_burnSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -85,16 +91,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool& >::type randint(randintSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Bmat(BmatSEXP);
     Rcpp::traits::input_parameter< const bool& >::type draw_h(draw_hSEXP);
+    Rcpp::traits::input_parameter< const int& >::type num_theta_steps(num_theta_stepsSEXP);
     Rcpp::traits::input_parameter< const int& >::type n_inner(n_innerSEXP);
     Rcpp::traits::input_parameter< const int& >::type n_outer(n_outerSEXP);
     Rcpp::traits::input_parameter< const int& >::type n_burn(n_burnSEXP);
-    rcpp_result_gen = Rcpp::wrap(bsmim_spikeslab_gaussprior_mcmc2(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn));
+    rcpp_result_gen = Rcpp::wrap(bsmim_spikeslab_gaussprior_mcmc2(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, num_theta_steps, n_inner, n_outer, n_burn));
     return rcpp_result_gen;
 END_RCPP
 }
 // bsmim_informative_mcmc2
-List bsmim_informative_mcmc2(const arma::mat& yz, const Rcpp::List& Xlist, const double& a_lam, const double& b_lam, const double& b_lambdaB, const double& a_sig, const double& b_sig, const double& s_theta, const double& step_theta, const double& a_pi, const double& b_pi, const bool& poly, const int& d, const bool& randint, const arma::mat& Bmat, const bool& draw_h, const arma::vec& thetaconstraint, const Rcpp::List& a_slabpos, const double b_slabpos, const Rcpp::List& alphas, const double a_rho, const double b_rho, const int& n_inner, const int& n_outer, const int& n_burn);
-RcppExport SEXP _bsmim2_bsmim_informative_mcmc2(SEXP yzSEXP, SEXP XlistSEXP, SEXP a_lamSEXP, SEXP b_lamSEXP, SEXP b_lambdaBSEXP, SEXP a_sigSEXP, SEXP b_sigSEXP, SEXP s_thetaSEXP, SEXP step_thetaSEXP, SEXP a_piSEXP, SEXP b_piSEXP, SEXP polySEXP, SEXP dSEXP, SEXP randintSEXP, SEXP BmatSEXP, SEXP draw_hSEXP, SEXP thetaconstraintSEXP, SEXP a_slabposSEXP, SEXP b_slabposSEXP, SEXP alphasSEXP, SEXP a_rhoSEXP, SEXP b_rhoSEXP, SEXP n_innerSEXP, SEXP n_outerSEXP, SEXP n_burnSEXP) {
+List bsmim_informative_mcmc2(const arma::mat& yz, const Rcpp::List& Xlist, const double& a_lam, const double& b_lam, const double& b_lambdaB, const double& a_sig, const double& b_sig, const double& s_theta, const double& step_theta, const double& a_pi, const double& b_pi, const bool& poly, const int& d, const bool& randint, const arma::mat& Bmat, const bool& draw_h, const arma::vec& thetaconstraint, const Rcpp::List& a_slabpos, const double b_slabpos, const Rcpp::List& alphas, const double a_rho, const double b_rho, const int& num_theta_steps, const int& n_inner, const int& n_outer, const int& n_burn);
+RcppExport SEXP _bsmim2_bsmim_informative_mcmc2(SEXP yzSEXP, SEXP XlistSEXP, SEXP a_lamSEXP, SEXP b_lamSEXP, SEXP b_lambdaBSEXP, SEXP a_sigSEXP, SEXP b_sigSEXP, SEXP s_thetaSEXP, SEXP step_thetaSEXP, SEXP a_piSEXP, SEXP b_piSEXP, SEXP polySEXP, SEXP dSEXP, SEXP randintSEXP, SEXP BmatSEXP, SEXP draw_hSEXP, SEXP thetaconstraintSEXP, SEXP a_slabposSEXP, SEXP b_slabposSEXP, SEXP alphasSEXP, SEXP a_rhoSEXP, SEXP b_rhoSEXP, SEXP num_theta_stepsSEXP, SEXP n_innerSEXP, SEXP n_outerSEXP, SEXP n_burnSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -120,10 +127,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::List& >::type alphas(alphasSEXP);
     Rcpp::traits::input_parameter< const double >::type a_rho(a_rhoSEXP);
     Rcpp::traits::input_parameter< const double >::type b_rho(b_rhoSEXP);
+    Rcpp::traits::input_parameter< const int& >::type num_theta_steps(num_theta_stepsSEXP);
     Rcpp::traits::input_parameter< const int& >::type n_inner(n_innerSEXP);
     Rcpp::traits::input_parameter< const int& >::type n_outer(n_outerSEXP);
     Rcpp::traits::input_parameter< const int& >::type n_burn(n_burnSEXP);
-    rcpp_result_gen = Rcpp::wrap(bsmim_informative_mcmc2(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, thetaconstraint, a_slabpos, b_slabpos, alphas, a_rho, b_rho, n_inner, n_outer, n_burn));
+    rcpp_result_gen = Rcpp::wrap(bsmim_informative_mcmc2(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, thetaconstraint, a_slabpos, b_slabpos, alphas, a_rho, b_rho, num_theta_steps, n_inner, n_outer, n_burn));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -285,9 +293,9 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_bsmim2_bsmim_mcmc2", (DL_FUNC) &_bsmim2_bsmim_mcmc2, 17},
-    {"_bsmim2_bsmim_spikeslab_mcmc2", (DL_FUNC) &_bsmim2_bsmim_spikeslab_mcmc2, 20},
-    {"_bsmim2_bsmim_spikeslab_gaussprior_mcmc2", (DL_FUNC) &_bsmim2_bsmim_spikeslab_gaussprior_mcmc2, 19},
-    {"_bsmim2_bsmim_informative_mcmc2", (DL_FUNC) &_bsmim2_bsmim_informative_mcmc2, 25},
+    {"_bsmim2_bsmim_spikeslab_mcmc2", (DL_FUNC) &_bsmim2_bsmim_spikeslab_mcmc2, 21},
+    {"_bsmim2_bsmim_spikeslab_gaussprior_mcmc2", (DL_FUNC) &_bsmim2_bsmim_spikeslab_gaussprior_mcmc2, 20},
+    {"_bsmim2_bsmim_informative_mcmc2", (DL_FUNC) &_bsmim2_bsmim_informative_mcmc2, 26},
     {"_bsmim2_bsmim_predict_old_cpp2", (DL_FUNC) &_bsmim2_bsmim_predict_old_cpp2, 16},
     {"_bsmim2_bsmim_predict_cpp2", (DL_FUNC) &_bsmim2_bsmim_predict_cpp2, 15},
     {"_bsmim2_bsmim_predict_approx_old_cpp2", (DL_FUNC) &_bsmim2_bsmim_predict_approx_old_cpp2, 16},

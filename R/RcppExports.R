@@ -53,13 +53,14 @@ bsmim_mcmc2 <- function(yz, Xlist, b_lambda, b_lambdaB, a_sig, b_sig, tau02, kap
 #' @param randint 0 = no random intercepts, 1 = random intercepts model
 #' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 #' @param draw_h 0 = dont draw h, 1 = draw h
+#' @param num_theta_steps no. of thetastar steps before lambda step (in spike and slab version). default 1
 #' @param n_inner no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
 #' @param n_outer no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
 #' @param n_burn no. of MCMC iterations to discard as burn-in
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
 #' @export
-bsmim_spikeslab_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, a_theta, b_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn) {
-    .Call('_bsmim2_bsmim_spikeslab_mcmc2', PACKAGE = 'bsmim2', yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, a_theta, b_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn)
+bsmim_spikeslab_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, a_theta, b_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, num_theta_steps, n_inner, n_outer, n_burn) {
+    .Call('_bsmim2_bsmim_spikeslab_mcmc2', PACKAGE = 'bsmim2', yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, a_theta, b_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, num_theta_steps, n_inner, n_outer, n_burn)
 }
 
 #' MCMC for BSMIM with spike and slab prior (inv-uniform slab for rho version)
@@ -84,13 +85,14 @@ bsmim_spikeslab_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_s
 #' @param randint 0 = no random intercepts, 1 = random intercepts model
 #' @param Bmat N xN block diagonal matrix indicating cluster membership for random intercepts model
 #' @param draw_h 0 = dont draw h, 1 = draw h
+#' @param num_theta_steps no. of thetastar steps before lambda step (in spike and slab version). default 1
 #' @param n_inner no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
 #' @param n_outer no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
 #' @param n_burn no. of MCMC iterations to discard as burn-in
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
 #' @export
-bsmim_spikeslab_gaussprior_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn) {
-    .Call('_bsmim2_bsmim_spikeslab_gaussprior_mcmc2', PACKAGE = 'bsmim2', yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, n_inner, n_outer, n_burn)
+bsmim_spikeslab_gaussprior_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, num_theta_steps, n_inner, n_outer, n_burn) {
+    .Call('_bsmim2_bsmim_spikeslab_gaussprior_mcmc2', PACKAGE = 'bsmim2', yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, num_theta_steps, n_inner, n_outer, n_burn)
 }
 
 #' MCMC for BSMIM with spike and slab prior (inv-uniform slab for rho version)
@@ -121,13 +123,14 @@ bsmim_spikeslab_gaussprior_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB,
 #' @param alphas list of Lm vectors representing alpha hyperparameters for dirichlet prior
 #' @param a_rho shape for gamma distribution (rho^{1/2})
 #' @param b_rho rate for gamma distribution (rho^{1/2}) 
+#' @param num_theta_steps no. of thetastar steps before lambda step (in spike and slab version). default 1
 #' @param n_inner no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.
 #' @param n_outer no. of MCMC iterations to run in the outer loop. n_outer iterations will be saved.
 #' @param n_burn no. of MCMC iterations to discard as burn-in
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
 #' @export
-bsmim_informative_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, thetaconstraint, a_slabpos, b_slabpos, alphas, a_rho, b_rho, n_inner, n_outer, n_burn) {
-    .Call('_bsmim2_bsmim_informative_mcmc2', PACKAGE = 'bsmim2', yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, thetaconstraint, a_slabpos, b_slabpos, alphas, a_rho, b_rho, n_inner, n_outer, n_burn)
+bsmim_informative_mcmc2 <- function(yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, thetaconstraint, a_slabpos, b_slabpos, alphas, a_rho, b_rho, num_theta_steps, n_inner, n_outer, n_burn) {
+    .Call('_bsmim2_bsmim_informative_mcmc2', PACKAGE = 'bsmim2', yz, Xlist, a_lam, b_lam, b_lambdaB, a_sig, b_sig, s_theta, step_theta, a_pi, b_pi, poly, d, randint, Bmat, draw_h, thetaconstraint, a_slabpos, b_slabpos, alphas, a_rho, b_rho, num_theta_steps, n_inner, n_outer, n_burn)
 }
 
 #' Predicting hnew for BSMIM by Component

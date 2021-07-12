@@ -22,6 +22,7 @@ bsmim_spikeslab_mcmc2(
   randint,
   Bmat,
   draw_h,
+  num_theta_steps,
   n_inner,
   n_outer,
   n_burn
@@ -61,6 +62,8 @@ bsmim_spikeslab_mcmc2(
 \item{Bmat}{N xN block diagonal matrix indicating cluster membership for random intercepts model}
 
 \item{draw_h}{0 = dont draw h, 1 = draw h}
+
+\item{num_theta_steps}{no. of thetastar steps before lambda step (in spike and slab version). default 1}
 
 \item{n_inner}{no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.}
 
