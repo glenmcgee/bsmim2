@@ -50,12 +50,12 @@ investigate_priors <- function(num_components=8, # no. components in index
     
     if(spike_slab==TRUE){
       
-      ## for variable selection
-      pi <- rbeta(R,prior_pi[1],prior_pi[2])
-      delta <- rbinom(R,1,pi)
       
       if(gauss_prior==TRUE){ ## gaussian prior on thetastar ( this is standard in the partially constrained version)
         for(l in 1:num_components){
+          ## for variable selection
+          pi <- rbeta(R,prior_pi[1],prior_pi[2])
+          delta <- rbinom(R,1,pi)
           
           slab <- rnorm(R,0,prior_theta_slab_sd)
           thetastar[,l] <- slab*delta+0
@@ -63,6 +63,9 @@ investigate_priors <- function(num_components=8, # no. components in index
         }
       }else{ ## else inverse uniform prior on thetastar^2 (only implemented when not using any constraints)
         for(l in 1:num_components){
+          ## for variable selection
+          pi <- rbeta(R,prior_pi[1],prior_pi[2])
+          delta <- rbinom(R,1,pi)
           
           slab <- sqrt(1/runif(R,prior_theta_slab_bounds[1],prior_theta_slab_bounds[2]))
           flip <- rbinom(R,1,0.5) ## half prob of being negative (since it is symmetric)
@@ -110,7 +113,9 @@ investigate_priors <- function(num_components=8, # no. components in index
     
     
     
-  }else if(constraint==1){
+  }else if(constraint==1){ # always use spike and slab
+    
+    
     if(is.null(prior_slabpos_shape_inf)){
       prior_slabpos_shape_inf <- rep(prior_slabpos[1],num_components)
     }else if(length(prior_slabpos_shape_inf)!=num_components){
