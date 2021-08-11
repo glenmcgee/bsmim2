@@ -7,3 +7,4 @@ src/*.so
 src/*.dll
 bsmim2.Rproj
 .Rhistory (Glen M's conflicted copy 2020-02-24)
+.DS_Store

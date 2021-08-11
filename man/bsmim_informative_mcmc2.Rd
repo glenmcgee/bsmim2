@@ -27,6 +27,7 @@ bsmim_informative_mcmc2(
   alphas,
   a_rho,
   b_rho,
+  num_theta_steps,
   n_inner,
   n_outer,
   n_burn
@@ -76,6 +77,8 @@ bsmim_informative_mcmc2(
 \item{a_rho}{shape for gamma distribution (rho^{1/2})}
 
 \item{b_rho}{rate for gamma distribution (rho^{1/2})}
+
+\item{num_theta_steps}{no. of thetastar steps before lambda step (in spike and slab version). default 1}
 
 \item{n_inner}{no. of MCMC iterations to run in the inner loop. n_outer*n_inner iteraction will be run.}
 

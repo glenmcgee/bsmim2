@@ -27,6 +27,7 @@ bsmim2(
   prior_theta_slab_bounds = c(0, 100),
   prior_pi = c(1, 1),
   stepsize_theta = 0.1,
+  num_theta_steps = 1,
   gaussian = TRUE,
   polydegree = 2,
   draw_h = FALSE,
@@ -79,6 +80,8 @@ bsmim2(
 \item{prior_pi}{Parameters for beta distribution prior for pi in spike & slab}
 
 \item{stepsize_theta}{Step size for random walk thetastar}
+
+\item{num_theta_steps}{Number of steps for thetastar before lambda step (for spike and slab version). default 1}
 
 \item{gaussian}{Use a Gaussian kernel (TRUE, default) or a polynomial kernel (FALSE)}
 
