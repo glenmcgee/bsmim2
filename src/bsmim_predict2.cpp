@@ -764,11 +764,19 @@ List bsmim_predict_indexwise_cpp2(const arma::mat&  yz,             // matrix [Y
   arma::mat Sigma_inv(N,N,arma::fill::zeros);               // Construct matrix Sigma=I+\lambda^{-1}*K where K is the kernel matrix
   arma::mat lamInv_Knew(points,points,arma::fill::zeros);   // lambda^{-1} times kernel matrix for new data
   arma::mat lamInv_Knewold(points,N,arma::fill::zeros);     // lambda^{-1} times kernel matrix for new AND old data (off-diagonal)
-  arma::vec hnew(points,arma::fill::zeros);                 // temporary vector for computing marginal covariance of h(.)
+  arma::vec hmeantemp(points,arma::fill::zeros);                 // temporary vector for computing marginal covariance of h(.)
   arma::mat hmean(points,M,arma::fill::zeros);              // marginal mean vector for h(.)
-  arma::mat hvar(points,M,arma::fill::zeros);               // marginal variance-covariance matrix of h(.)
+  // arma::mat hvar(points,M,arma::fill::zeros);            // redundant   // marginal variance-covariance matrix of h(.)
   arma::vec ons(N, arma::fill::ones);                       // vector of length N of ones
   arma::field<arma::mat> Kmats;                             // field to contain output of get_Kmat()
+  
+  arma::field<arma::mat> hcovfield(M);                           // field to contain vcov matrices
+  arma::mat hvar0(points,points,arma::fill::zeros);         // placeholder to initialize vcov matrices
+  for(int m=0; m<M; m++){
+    hcovfield[m] = hvar0;                                        // initialize with zeros so we can add to them
+   }
+  Rcpp::List  hcov(M);                                    // List of cov matrices to export 
+  
     
   
   for(int s=0; s<S_iter; s++){                            // loop over posterior draws
@@ -808,26 +816,35 @@ List bsmim_predict_indexwise_cpp2(const arma::mat&  yz,             // matrix [Y
       lamInv_Knewold = Kmats[2];      // Construct lambda^{-1} times Kernel matrix for new and old values
       
     
-      // Predict hnew
-      hnew = lamInv_Knewold * Sigma_inv * y_zgam;                                                                 // mean of hnew at each draw is   lambda^{-1} Koldnew Sigma^{-1} (Y-Zgamma) 
-      hmean.col(m) += hnew/S_iter;                                                                                // law of total expectation over all draws
-      hvar.col(m) +=                                                                                              // law of total variance except for hmean^2 which will be subtracted post hoc (see below)
-        sigma2[s] * (diagvec(lamInv_Knew) - diagvec(lamInv_Knewold * Sigma_inv * lamInv_Knewold.t()))/S_iter  +   // mean(var(hnew)), where var(hnew) is sigma^2(lambda^{-1}Knew-\lambda^{-2}KoldnewSigma^{-1}Koldnew^T)
-        square(hnew)/S_iter;                                                                                      // mean of square (and subtract square of mean below)
-      
-      
+      // Predict hmeantemp
+      hmeantemp = lamInv_Knewold * Sigma_inv * y_zgam;                                                                 // mean of hnew at each draw is   lambda^{-1} Koldnew Sigma^{-1} (Y-Zgamma) 
+      hmean.col(m) += hmeantemp/S_iter;                                                                                // law of total expectation over all draws
+      hcovfield[m] +=                                                                           // law of total variance except for hmean^2 which will be subtracted post hoc (see below)
+        sigma2[s] * (lamInv_Knew - lamInv_Knewold * Sigma_inv * lamInv_Knewold.t())/(S_iter) +  // mean(var(hnew)), where var(hnew) is sigma^2(lambda^{-1}Knew-\lambda^{-2}KoldnewSigma^{-1}Koldnew^T)
+        hmeantemp*hmeantemp.t()/(S_iter);                                                       // mean of square (and subtract square of mean below)
+      // hvar.col(m) +=                                                                                                  // this should be redundant now    
+      //   sigma2[s] * (diagvec(lamInv_Knew) - diagvec(lamInv_Knewold * Sigma_inv * lamInv_Knewold.t()))/S_iter  +   
+      //   square(hmeantemp)/S_iter; 
       
     } // end m loop over indices
     
   } // end s loop over posterior draws
   
+  // finish law of total variance
+  for(int m=0; m<M; m++){     // loop over indices 
+    hcovfield[m] -= ( hmean.col(m)*hmean.col(m).t()); // subtracting third component of law of total variance (i.e. E[E[h|s]]^2)
+  }
   
-  
+  // Convert field to list
+  for(int m=0; m<M; m++){
+    hcov[m] = hcovfield[m];
+  }
   
   
   // return a list
   return List::create(Named("hmean") = hmean,                    // mean of hnew 
-                      Named("hsd") =  sqrt(hvar-square(hmean))); // subtracting third component of law of total variance (i.e. E[E[h|s]]^2)
+                      // Named("hsd") =  sqrt(hvar-square(hmean)), //redundant now // subtracting third component of law of total variance (i.e. E[E[h|s]]^2)
+                      Named("hcov")=  hcov); 
   
   
 }

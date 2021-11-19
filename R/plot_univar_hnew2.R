@@ -4,18 +4,23 @@
 #' @param pred An object of class hpred
 #' @param ylims An optional vector of length 2 containing the limits for the y axis; default is null
 #' @param assoc Report contrasts
+#' @param centered Remove intercept; default is TRUE 
+#' 
 #'
 #' @return a list of component-wise response-curve plots .
 #' @import ggplot2 
 #' @export
 #'
-plot_univar_hnew2 <- function(pred,ylims=NULL,assoc=TRUE){
+plot_univar_hnew2 <- function(pred,ylims=NULL,assoc=TRUE,centered=TRUE){
   
-  if(class(pred)=="hassoc" & assoc==TRUE){
+  if(class(pred)=="hassoc" & assoc==TRUE){ ## contrasts
     df <- pred$contrasts
+  }else if(class(pred)=="hpred" & centered==TRUE & !is.null(pred$centered)){ ## centered
+    df <- pred$centered
   }else{
     df <- pred$fits
   }
+  
   
   if(class(pred)=="hassoc"){
     if(pred$overall==TRUE){
@@ -178,13 +183,20 @@ plot_univar_hnew2 <- function(pred,ylims=NULL,assoc=TRUE){
 #'
 #' @param pred An object of class hpred_indexwise
 #' @param ylims An optional vector of length 2 containing the limits for the y axis; default is null
+#' @param centered Remove intercept; default is TRUE
 #'
 #' @return a list of component-wise response-curve plots .
 #' @export
 #'
-plot_univar_hnew_indexwise2 <- function(pred,ylims=NULL){
+plot_univar_hnew_indexwise2 <- function(pred,ylims=NULL,centered=TRUE){
   
-  ## make dataframe from object of class hpred
+  if(class(pred)=="hpred_indexwise" & centered==TRUE & !is.null(pred$mean_centered)){ ## centered
+    pred$mean <- pred$mean_centered
+    pred$lower <- pred$lower_centered
+    pred$upper <- pred$upper_centered
+  }
+  
+  ## make dataframe from object of class hpred_indexwise
   df <- data.frame(matrix(unlist(pred), nrow=length(pred$m), byrow=F))
   colnames(df) <- names(pred)
   

@@ -298,7 +298,17 @@ predict_hnew2 <- function(object,
   fits$lower <- fits$mean - 1.96*fits$sd
   fits$upper <- fits$mean + 1.96*fits$sd
   
+  ## centered/projected version to remove intercept and associated uncertainty
+  ones <- rep(1,nrow(fits)) 
+  H <- ones%*%solve(t(ones)%*%ones)%*%t(ones) ## projection onto column of 1s
+  I_H <- diag(1,nrow=nrow(H))-H
+  centered <- data.frame(mean=I_H%*%fits$mean,
+                     sd=sqrt(diag(I_H%*%predict_hnew$hcov%*%I_H)))
+  centered$lower <- centered$mean - 1.96*centered$sd
+  centered$upper <- centered$mean + 1.96*centered$sd
+  
   results <- list(fits=fits,
+                  centered=centered,
                   grid=newX) ## rmse for test data
   class(results) <- "hpred"
   return(results)
@@ -569,12 +579,23 @@ predict_hnew_indexwise2 <- function(object,
                                                d=object$polydegree,
                                                randint=object$randint,
                                                Bmat=object$Bmat)
-    
+  
+  ## reconstructing hsd, since we now return full covariance matrices instead ## dont really need this
+  predict_hnew$hsd <- matrix(NA,nrow=nrow(predict_hnew$hmean),ncol=ncol(predict_hnew$hmean))
+  for(m in 1:M){
+    predict_hnew$hsd[,m] <- sqrt(diag(predict_hnew$hcov[[m]]))
+  }
 
   
   ########################
   ## return values
   ########################
+  ## centered/projected version to remove intercept and associated uncertainty
+  ones <- rep(1,points) 
+  H <- ones%*%solve(t(ones)%*%ones)%*%t(ones) ## projection onto column of 1s
+  I_H <- diag(1,nrow=nrow(H))-H
+  
+  
   fits <- NULL
   for(m in 1:M){
     temp <- 
@@ -582,6 +603,8 @@ predict_hnew_indexwise2 <- function(object,
                  # name = names(object$x)[m],
                  mean = predict_hnew$hmean[,m],
                  sd = predict_hnew$hsd[,m],
+                 mean_centered = I_H%*%predict_hnew$hmean[,m],                 ## centered version to remove intercept
+                 sd_centered = sqrt(diag(I_H%*%predict_hnew$hcov[[m]]%*%I_H)), ## centered version to remove intercept
                  grid = gridpoints[,m] ) ##gridpoints[,m]  )                                    ## grid of points, NOT SCALED OR TRANSFORMED APPROPRIATELY
                  # E = ((gridpoints[,m] * sum(object$basis[[m]]$psi%*%colMeans(object$theta[[m]])))-mean(object$x[[m]]%*%object$basis[[m]]$psi%*%colMeans(object$theta[[m]])))/sd(object$x[[m]]%*%object$basis[[m]]$psi%*%colMeans(object$theta[[m]])) #scale according to exposure.
     fits <- rbind(fits,temp)
@@ -589,6 +612,8 @@ predict_hnew_indexwise2 <- function(object,
   
   fits$lower <- fits$mean - 1.96*fits$sd
   fits$upper <- fits$mean + 1.96*fits$sd
+  fits$lower_centered <- fits$mean_centered - 1.96*fits$sd_centered  ## centered version to remove intercept
+  fits$upper_centered <- fits$mean_centered + 1.96*fits$sd_centered  ## centered version to remove intercept
   if(!missing(crossM)){
     fits$cross_m <- crossM
     fits$cross <- names(object$x)[crossM]
@@ -772,8 +797,17 @@ predict_hnew_X2 <- function(object,
   fits$lower <- fits$mean - 1.96*fits$sd
   fits$upper <- fits$mean + 1.96*fits$sd
   
+  ## centered/projected version to remove intercept and associated uncertainty
+  ones <- rep(1,nrow(fits)) 
+  H <- ones%*%solve(t(ones)%*%ones)%*%t(ones) ## projection onto column of 1s
+  I_H <- diag(1,nrow=nrow(H))-H
+  centered <- data.frame(mean=I_H%*%fits$mean,
+                         sd=sqrt(diag(I_H%*%predict_hnew$hcov%*%I_H)))
+  centered$lower <- centered$mean - 1.96*centered$sd
+  centered$upper <- centered$mean + 1.96*centered$sd
   
   results <- list(fits=fits,
+                  centered=centered,
                   hsamp=predict_hnew$hsamp,
                   grid=newX,
                   LPPD=LPPD, ## lppd for test data
