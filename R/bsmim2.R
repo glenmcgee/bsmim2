@@ -720,43 +720,93 @@ bsmim_crossval2 <- function(object,
 #'
 #' @param obj An object of class bsmim
 #' @param w Should ws be reported instead of thetas? (ws are original weights before pre-transformation)
+#' @param computeBF Should (MARGINAL) Bayes Factors for componentwise and indexwise inclusion be computed?
+#' @param ndrawsBF Number of draws from prior; used for computing Bayes Factors for inclusion
+#' 
 #' @return A list of length M of data.frames summarizing theta estimates.
 #' @author Glen McGee
 #' @export
 summarize_thetas <- function(obj,
-                             w=FALSE){ # whether to report ws instead of thetas (i.e. for ranked method)
+                             w=FALSE,
+                             computeBF=TRUE, # whether to report ws instead of thetas (i.e. for ranked method)
+                             ndrawsBF=8000){ 
   res <- list()
-  for(jj in 1:length(obj$theta)){
-    if(w==FALSE){
-      theta_raw <- obj$theta[[jj]]
-    }else{ ## if specified, use w instead of theta
-      theta_raw <- obj$w[[jj]]
-    }
-    rho0 <- apply(theta_raw,1,function(x) sum(x!=0)==0) ## when all thetas are 0 (i.e. rho==0), theta is not well defined
-    prop_rho0 <- mean(rho0)
-    ## consider only well defined values # theta[apply(theta,1,function(x) sum(x!=0)==0),] <- 1/sqrt(ncol(theta))
-    theta <- theta_raw[!rho0,] 
-    ## summarize
-    if(ncol(obj$theta[[jj]])==1){ ## for L_m=1
-      prop_theta0 <- 1
-      post_mean <- 1
-      theta_est <- 1
-      post_lci <- 1
-      post_uci <- 1
-    }else{ ## for L_m>1
-      ## ensure they are standardized
-      theta <- theta/sqrt(apply(theta,1,function(x) sum(x^2))) ## i.e. in case we are using w above
+  # componentBF <- vector(mode = "list", length = length(obj$theta)) ## list of vectors containing Bayes Factors for componentwise inclusion
+  # indexBF <- rep(NA,length(obj$theta)) ## vector of Bayes Factors for indexwise inclusion
+    for(jj in 1:length(obj$theta)){
       
-      prop_theta0 <- apply(theta,2,function(x) mean(x==0))
-      post_mean <- apply(theta,2,mean)
-      theta_est <- post_mean/sqrt(sum(post_mean^2)) ## standardize posterior mean to satisfy constraint
-      post_lci <- apply(theta,2,function(x) quantile(x,0.025)) ## credible interval
-      post_uci <- apply(theta,2,function(x) quantile(x,0.975)) ## credible interval 
+      
+      
+      if(w==FALSE){
+        theta_raw <- obj$theta[[jj]]
+      }else{ ## if specified, use w instead of theta
+        theta_raw <- obj$w[[jj]]
+      }
+      rho0 <- apply(theta_raw,1,function(x) sum(x!=0)==0) ## when all thetas are 0 (i.e. rho==0), theta is not well defined
+      prop_rho0 <- mean(rho0)
+      ## consider only well defined values # theta[apply(theta,1,function(x) sum(x!=0)==0),] <- 1/sqrt(ncol(theta))
+      theta <- theta_raw[!rho0,] 
+      ## summarize
+      if(ncol(obj$theta[[jj]])==1){ ## for L_m=1
+        prop_theta0 <- 1
+        post_mean <- 1
+        theta_est <- 1
+        post_lci <- 1
+        post_uci <- 1
+        prop_theta0MARG <- prop_rho0 ## marginal probability
+      }else{ ## for L_m>1
+        ## ensure they are standardized
+        theta <- theta/sqrt(apply(theta,1,function(x) sum(x^2))) ## i.e. in case we are using w above
+        
+        prop_theta0 <- apply(theta,2,function(x) mean(x==0))
+        post_mean <- apply(theta,2,mean)
+        theta_est <- post_mean/sqrt(sum(post_mean^2)) ## standardize posterior mean to satisfy constraint
+        post_lci <- apply(theta,2,function(x) quantile(x,0.025)) ## credible interval
+        post_uci <- apply(theta,2,function(x) quantile(x,0.975)) ## credible interval
+        prop_theta0MARG <- apply(theta_raw,2,function(x) mean(x==0)) ## marginal probability
+      }
+      
+      
+      ## compute BFs
+      if(computeBF==TRUE & obj$spike_slab==TRUE){ ## get prior odds
+        priors <- investigate_priors(num_components=ncol(obj$theta[[jj]]),
+                                     R=ndrawsBF,
+                                     constraint=obj$constraints[jj],
+                                     spike_slab=TRUE,
+                                     gauss_prior=obj$gauss_prior, 
+                                     prior_theta_slab_sd=obj$prior_theta_slab_sd, 
+                                     prior_theta_slab_bounds=obj$prior_theta_slab_bounds,
+                                     prior_pi=obj$prior_pi,
+                                     prior_slabpos=obj$prior_slabpos,
+                                     prior_slabpos_shape_inf=obj$prior_slabpos_shape_inf,
+                                     prior_alphas=obj$prior_alphas,
+                                     prior_slabrho=obj$prior_slabrho,
+                                     ## OLD VERSION with no spike and
+                                     horseshoe=obj$horseshoe, 
+                                     kappa=obj$kappa, 
+                                     prior_tau=obj$prior_tau) 
+        
+        priorodds_component <- (priors$PIP/100)/(1-(priors$PIP/100))
+        priorodds_index <- mean(priors$rho!=0)/ (1-mean(priors$rho!=0))
+        
+        postodds_component <- (1-prop_theta0MARG)/prop_theta0MARG ## prop_rho0 is probability that rho is 0
+        postodds_index <- (1-prop_rho0)/prop_rho0 ## prop_rho0 is probability that rho is 0
+        
+        componentBF <- postodds_component/priorodds_component
+        indexBF <- postodds_index/priorodds_index
+        
+      }
+      
+      
+      
+      theta_df <- data.frame(BF_RHO=indexBF,
+                             PIP_RHO=1-prop_rho0,
+                             margBF=componentBF,
+                             condPIP=1-prop_theta0,
+                             est=theta_est,
+                             lci=post_lci,
+                             uci=post_uci) ## inference for theta conditional on rho!=0
+      res[[jj]] <- theta_df
     }
-        theta_df <- data.frame(PIP_RHO=1-prop_rho0,PIP=1-prop_theta0,est=theta_est,lci=post_lci,uci=post_uci) ## inference for theta conditional on rho!=0
-    res[[jj]] <- theta_df
-  }
   return(res)
 }
-
-
