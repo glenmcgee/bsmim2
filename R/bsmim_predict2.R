@@ -327,6 +327,7 @@ predict_hnew2 <- function(object,
 #' @param qtls M-list of Lm-vectors containing quantiles to set exposure components to
 # #' @param newX optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtl and points
 #' @param compare_qtl quantile to compare all others to
+#' @param points number of points (including compare_qtl) to compare
 #' @param overall should the 'overall' effect be reported
 #' @param approx should the approximate method be used (not recommended)
 #' 
@@ -340,6 +341,7 @@ predict_hnew_assoc2 <- function(object,
                           qtls=list(NA),
                           # newX=NULL,
                           compare_qtl=0.5,
+                          points=19, ## number of points (including median) to compare 
                           overall=FALSE,
                           approx=FALSE){
   
@@ -371,7 +373,7 @@ predict_hnew_assoc2 <- function(object,
   # if(is.null(newX)){ ### if no newX given, construct same grid as the other versions above
     
     ## Construct new grid points, quantiles and weights
-    points=19 ## (0.05,0.10,...,0.95)
+    # points=19 ## (0.05,0.10,...,0.95)
     newX <- list()                      ## list of ((points x sum(Lm)) by Lm ) matrices whose columns are a grid of points for hnew
     if(overall==FALSE){
       id <- 1 ## iterator to set grid appropriately
