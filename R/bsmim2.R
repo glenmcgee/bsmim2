@@ -409,7 +409,10 @@ bsmim2 <- function(y,
   
     ## w
     fit$w[[m]] <- fit$theta[[m]]%*%t(B[[m]]$psi)
-    
+    ## NEW EDIT: standardize w's so that they are still identifiabile after transformation
+    fit$w[[m]] <- fit$w[[m]]/apply(fit$w[[m]],1,function(x) sqrt(sum(x^2)))
+    ## handle NAs
+    fit$w[[m]][is.na(fit$w[[m]])] <- 0
   }
   if(!is.null(xnames)) names(fit$theta) <- xnames
   
@@ -748,7 +751,7 @@ summarize_thetas <- function(obj,
       theta <- theta_raw[!rho0,] 
       ## summarize
       if(ncol(obj$theta[[jj]])==1){ ## for L_m=1
-        prop_theta0 <- 1
+        prop_theta0 <- 0
         post_mean <- 1
         theta_est <- 1
         post_lci <- 1
@@ -778,7 +781,7 @@ summarize_thetas <- function(obj,
                                      prior_theta_slab_bounds=obj$prior_theta_slab_bounds,
                                      prior_pi=obj$prior_pi,
                                      prior_slabpos=obj$prior_slabpos,
-                                     prior_slabpos_shape_inf=obj$prior_slabpos_shape_inf,
+                                     prior_slabpos_shape_inf=obj$prior_slabpos_shape_inf[[jj]],
                                      prior_alphas=obj$prior_alphas,
                                      prior_slabrho=obj$prior_slabrho,
                                      ## OLD VERSION with no spike and

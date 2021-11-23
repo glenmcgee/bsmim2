@@ -328,6 +328,8 @@ predict_hnew2 <- function(object,
 # #' @param newX optional M-list of (pts by Lm)-matrices containing new values to predict at---all others get set to 0; overrides qtl and points
 #' @param compare_qtl quantile to compare all others to
 #' @param points number of points (including compare_qtl) to compare
+#' @param newXcontrast list containing new covariate matrices to compare; final row of each matrix is the comparator; overrides points, qtls, qtl_lims, compare_qtl 
+#' @param rawX set to TRUE if newX needs to first be preprocessed; only used if newXcontrast is non null
 #' @param overall should the 'overall' effect be reported
 #' @param approx should the approximate method be used (not recommended)
 #' 
@@ -342,6 +344,8 @@ predict_hnew_assoc2 <- function(object,
                           # newX=NULL,
                           compare_qtl=0.5,
                           points=19, ## number of points (including median) to compare 
+                          newXcontrast=NULL,
+                          rawX=TRUE,
                           overall=FALSE,
                           approx=FALSE){
   
@@ -371,7 +375,28 @@ predict_hnew_assoc2 <- function(object,
   
   ### check newX / set to quantiles
   # if(is.null(newX)){ ### if no newX given, construct same grid as the other versions above
+  if(!is.null(newXcontrast)){ ## if supplied newXcontrast, check validity
+    if(length(newXcontrast)==M){ ## correct length
+      if((sum(unlist(lapply(newXcontrast,ncol))!=Lm)==0) & (length(unique(unlist(lapply(newXcontrast,nrow))))==1) ){ ## correct number of columns and rows for each matrix
+        newX <- newXcontrast ## data are valid
+        if(rawX==TRUE){ ## if data havent been pre-processed
+          for(m in 1:M){ ## this puts them on the right scale, which is only necessary if you supply your own new data
+            newX[[m]] <- (newX[[m]]-matrix(object$xscale$mean[[m]],ncol=Lm[m],nrow=nrow(as.matrix(newX[[m]])),byrow=TRUE))/matrix(object$xscale$sd[[m]],ncol=Lm[m],nrow=nrow(as.matrix(newX[[m]])),byrow=TRUE)
+          }
+        }
+      }else{
+        newX=NULL
+        print("invalid newXcontrast")
+      }
+    }else{
+      newX=NULL
+      print("invalid newXcontrast")
+    }
+  }else{
+    newX=NULL
+  }
     
+  if(is.null(newX)){ 
     ## Construct new grid points, quantiles and weights
     # points=19 ## (0.05,0.10,...,0.95)
     newX <- list()                      ## list of ((points x sum(Lm)) by Lm ) matrices whose columns are a grid of points for hnew
@@ -398,9 +423,9 @@ predict_hnew_assoc2 <- function(object,
         newX[[m]] <- temp_Xq
       }
       
-    }
+  }
     
-  # }
+   }
 
   
   
