@@ -65,7 +65,7 @@ predict_hnew_old2 <- function(object,
   Xqlist <- list()                          ## list of L_m-vectors for quantile exposure level across N observations
   psi <- list()                             ## prep psi for Rcpp function
   for(m in 1:M){   ## rescale to divide by number of data times and rho
-    weights[[m]] <- sqrt(as.matrix(object$rho)[,m])*object$theta[[m]] %*% t(object$basis[[m]]$psi) # / sqrt(nrow(object$basis[[m]]$psi))         ## removing the scaling we did in for theta
+    weights[[m]] <- sqrt(as.matrix(object$rho)[,m])*object$w[[m]] # EDIT: old version wasnt scaling it to have norm 1 (check this): #ssqrt(as.matrix(object$rho)[,m])*object$theta[[m]] %*% t(object$basis[[m]]$psi) # / sqrt(nrow(object$basis[[m]]$psi))         ## removing the scaling we did in for theta
     psi[[m]] <- object$basis[[m]]$psi  ## list
     
     if(is.null(newvals)){
@@ -226,7 +226,7 @@ predict_hnew2 <- function(object,
   weights <- list() ## list of (S_iter by Lm) matrices with rows rho^{1/2}w (rows correspond to different iterations)
   psi <- list()     ## prep psi for Rcpp function
   for(m in 1:M){    ## rescale to divide by number of data times and rho
-    weights[[m]] <- sqrt(as.matrix(object$rho)[,m])*object$theta[[m]] %*% t(object$basis[[m]]$psi) # / sqrt(nrow(object$basis[[m]]$psi))         ## removing the scaling we did in for theta
+    weights[[m]] <- sqrt(as.matrix(object$rho)[,m])*object$w[[m]] # EDIT: old version wasnt scaling it to have norm 1 (check this): #sqrt(as.matrix(object$rho)[,m])*object$theta[[m]] %*% t(object$basis[[m]]$psi) # / sqrt(nrow(object$basis[[m]]$psi))         ## removing the scaling we did in for theta
     psi[[m]] <- object$basis[[m]]$psi  ## list
     
   }
@@ -435,7 +435,7 @@ predict_hnew_assoc2 <- function(object,
   weights <- list() ## list of (S_iter by Lm) matrices with rows rho^{1/2}w (rows correspond to different iterations)
   psi <- list()     ## prep psi for Rcpp function
   for(m in 1:M){    ## rescale to divide by number of data times and rho
-    weights[[m]] <- sqrt(as.matrix(object$rho)[,m])*object$theta[[m]] %*% t(object$basis[[m]]$psi) # / sqrt(nrow(object$basis[[m]]$psi))         ## removing the scaling we did in for theta
+    weights[[m]] <- sqrt(as.matrix(object$rho)[,m])*object$w[[m]] # EDIT: old version wasnt scaling it to have norm 1 (check this): #sqrt(as.matrix(object$rho)[,m])*object$theta[[m]] %*% t(object$basis[[m]]$psi) # / sqrt(nrow(object$basis[[m]]$psi))         ## removing the scaling we did in for theta
     psi[[m]] <- object$basis[[m]]$psi  ## list
     
   }
@@ -570,7 +570,7 @@ predict_hnew_indexwise2 <- function(object,
   Xmedian <- list()                         ## list of L_m-vectors for median exposure level across N observations
   psi <- list()                             ## prep psi for Rcpp function
   for(m in 1:M){   ## rescale to divide by number of data times and rho
-    weights[[m]] <- sqrt(as.matrix(object$rho)[,m])*object$theta[[m]] %*% t(object$basis[[m]]$psi) # / sqrt(nrow(object$basis[[m]]$psi))         ## removing the scaling we did in for theta
+    weights[[m]] <- sqrt(as.matrix(object$rho)[,m])*object$w[[m]] # EDIT: old version wasnt scaling it to have norm 1 (check this): # sqrt(as.matrix(object$rho)[,m])*object$theta[[m]] %*% t(object$basis[[m]]$psi) # / sqrt(nrow(object$basis[[m]]$psi))         ## removing the scaling we did in for theta
     if(!is.null(trueW)){
       Ebar[,m] <- apply(object$x[[m]] %*% t(trueW[[m]] %*% t(object$basis[[m]]$psi)),1,mean) # / sqrt(nrow(object$basis[[m]]$psi)))  ## compute X*theta_bar
     }else{
@@ -733,7 +733,7 @@ predict_hnew_X2 <- function(object,
   weights <- list() ## list of (S_iter by Lm) matrices with rows rho^{1/2}w (rows correspond to different iterations)
   psi <- list()     ## prep psi for Rcpp function
   for(m in 1:M){    ## rescale to divide by number of data times and rho
-    weights[[m]] <- sqrt(as.matrix(object$rho)[,m])*object$theta[[m]] %*% t(object$basis[[m]]$psi) # / sqrt(nrow(object$basis[[m]]$psi))         ## removing the scaling we did in for theta
+    weights[[m]] <- sqrt(as.matrix(object$rho)[,m])*object$w[[m]] # EDIT: old version wasnt scaling it to have norm 1 (check this): #ssqrt(as.matrix(object$rho)[,m])*object$theta[[m]] %*% t(object$basis[[m]]$psi) # / sqrt(nrow(object$basis[[m]]$psi))         ## removing the scaling we did in for theta
     psi[[m]] <- object$basis[[m]]$psi  ## list
     
   }
