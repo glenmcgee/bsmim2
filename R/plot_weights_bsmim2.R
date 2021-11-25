@@ -123,11 +123,11 @@ plot_weights_bsmim2 <- function(object){
     plots_w[[mm]] <- p
   }
   
-  ## wstar
+  ## wstar ## EDIT: check this. w's are standardized independently of rho, so we really are looking for the original theta stars here
   ## first get the max and min
   dflist <- list()
   for(mm in 1:length(object$w)){                 ## loop over m (indices)
-    dflist[[mm]] <- data.frame(object$w[[mm]])*sqrt(as.matrix(object$rho)[,mm])
+    dflist[[mm]] <- sqrt(as.matrix(object$rho)[,mm])*object$theta[[mm]] %*% t(object$basis[[mm]]$psi) # EDIT: standardize with correct rho, which only applies at the beta (theta) level, not the theta (w) level #data.frame(object$w[[mm]])*sqrt(as.matrix(object$rho)[,mm])
   }
   maxy <- max(sapply(dflist,max))
   miny <- min(sapply(dflist,min))
@@ -135,7 +135,7 @@ plot_weights_bsmim2 <- function(object){
   plots_wstar <- list()
   for(mm in 1:length(object$w)){                 ## loop over m (indices)
     
-    dfplot <- data.frame(object$w[[mm]])*sqrt(as.matrix(object$rho)[,mm])
+    dfplot <- sqrt(as.matrix(object$rho)[,mm])*object$theta[[mm]] %*% t(object$basis[[mm]]$psi) # EDIT: standardize with correct rho, which only applies at the beta (theta) level, not the theta (w) level #data.frame(object$w[[mm]])*sqrt(as.matrix(object$rho)[,mm])
     if(!is.null(colnames(object$x[[mm]]))){
       colnames(dfplot) <- colnames(object$x[[mm]])
     }else if(!is.null(ncol(object$x[[mm]]))){
