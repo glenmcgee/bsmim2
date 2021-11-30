@@ -37,6 +37,8 @@
 #' @param prior_slabrho Shape and rate for gamma prior on rho^{1/2} (under constraints=2)
 #' @param gaussian Use a Gaussian kernel (TRUE, default) or a polynomial kernel (FALSE)
 #' @param polydegree Degree of polynomial when polynomial kernel is used.  Only applies when gaussian=FALSE.
+#' @param centering Should covariates be centered to have mean 0.  Default is TRUE.
+#' @param scaling Should covariates be scaled to have standard deviation 1.  Default is TRUE.
 #' @return An object of class 'bsmim'.
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
 #' @importFrom stats model.matrix sd var qnorm
@@ -74,7 +76,9 @@ bsmim2 <- function(y,
                    prior_slabpos=c(0.4,1.6), ## shape and rate for gamma prior on thetastar (under constraints=1)
                    prior_slabpos_shape_inf=NULL, ## List of multiple shape params for gamma prior on thetastar (under constraints=1) when using informative priors with variable selection. Overrides shape param in prior_slabpos[1]
                    prior_alphas=NULL,    ## M-List of alpha hyperparameters for dirichlet prior on weights (under constraints=2)
-                   prior_slabrho=c(4,2)){ ## shape and rate for gamma prior on rho^{1/2} (under constraints=2)
+                   prior_slabrho=c(4,2), ## shape and rate for gamma prior on rho^{1/2} (under constraints=2)
+                   centering=TRUE, ## should covariates be centered to have mean=0
+                   scaling=TRUE){ ## should covariates be scaled to have SD=1
   
   
   
@@ -160,8 +164,16 @@ bsmim2 <- function(y,
     # standardize X_m
     mnx <- sdx <- vector(mode="list",length=M)
     for(m in 1:M){
-      mnx[[m]] <- apply(x[[m]],2,mean)
-      sdx[[m]] <- apply(x[[m]],2,sd)
+      if(centering==TRUE){
+        mnx[[m]] <- apply(x[[m]],2,mean)
+      }else{
+        mnx[[m]] <- rep(0,ncol(x[[m]]))
+      }
+      if(scaling==TRUE){
+        sdx[[m]] <- apply(x[[m]],2,sd)
+      }else{
+        sdx[[m]] <- rep(1,ncol(x[[m]]))
+      }
       x[[m]] <- t(apply(x[[m]],1,function(x) (x-mnx[[m]])/sdx[[m]])) 
       if(dim(x[[m]])[1]!=N){x[[m]] <- t(x[[m]])}
     }
@@ -408,7 +420,7 @@ bsmim2 <- function(y,
     # fit$rho[,m] <- fit$rho[,m]*sqrt(nrow(B[[m]]$psi)) ## also ander parameterizes rho differently I think so i doubt we would divide here
   
     ## w
-    fit$w[[m]] <- fit$theta[[m]]%*%t(B[[m]]$psi)
+    fit$w[[m]] <- (fit$theta[[m]]%*%t(B[[m]]$psi))/matrix(sdx[[m]],nrow=nrow(fit$theta[[m]]),ncol=ncol(fit$theta[[m]]),byrow=TRUE) #EDIT: scale by standard deviations IF using scaling above; otherwise sdx is just a vector of 1s
     ## NEW EDIT: standardize w's so that they are still identifiabile after transformation
     fit$w[[m]] <- fit$w[[m]]/apply(fit$w[[m]],1,function(x) sqrt(sum(x^2)))
     ## handle NAs
