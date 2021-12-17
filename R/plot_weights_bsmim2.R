@@ -141,6 +141,7 @@ plot_weights_bsmim2 <- function(object){
     }else if(!is.null(ncol(object$x[[mm]]))){
       colnames(dfplot) <- 1:ncol(object$x[[mm]])
     }
+    dfplot <- data.frame(dfplot)
     dfplot <- gather(dfplot,"l","wstar")
     if(ncol(object$w[[mm]])==1){
       colnames(dfplot) <- "wstar"
