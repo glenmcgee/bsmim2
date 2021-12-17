@@ -420,7 +420,7 @@ bsmim2 <- function(y,
     # fit$rho[,m] <- fit$rho[,m]*sqrt(nrow(B[[m]]$psi)) ## also ander parameterizes rho differently I think so i doubt we would divide here
   
     ## w
-    fit$w[[m]] <- (fit$theta[[m]]%*%t(B[[m]]$psi))/matrix(sdx[[m]],nrow=nrow(fit$theta[[m]]),ncol=ncol(fit$theta[[m]]),byrow=TRUE) #EDIT: scale by standard deviations IF using scaling above; otherwise sdx is just a vector of 1s
+    fit$w[[m]] <- (fit$theta[[m]]%*%t(B[[m]]$psi))/matrix(sdx[[m]],nrow=nrow(fit$theta[[m]]),ncol=length(sdx[[m]]),byrow=TRUE) #EDIT: scale by standard deviations IF using scaling above; otherwise sdx is just a vector of 1s
     ## NEW EDIT: standardize w's so that they are still identifiabile after transformation
     fit$w[[m]] <- fit$w[[m]]/apply(fit$w[[m]],1,function(x) sqrt(sum(x^2)))
     ## handle NAs
@@ -580,7 +580,8 @@ bsmim2 <- function(y,
   fit$prior_slabpos_shape_inf <- prior_slabpos_shape_inf
   fit$prior_alphas <- prior_alphas
   fit$prior_slabrho <- prior_slabrho
-
+  fit$centering <- centering
+  fit$scaling <- scaling
   
   fit$call <- match.call()
   class(fit) <- "bsmim"
