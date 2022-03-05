@@ -55,24 +55,27 @@ plot_trace2 <- function(object){
   
   ## nu
   	plots_nu <- list()
-  	for(mm in 1:length(object$nu)){                 ## loop over m (indices)
-      plots_m <- list()
-      for(ll in 1:ncol(object$nu[[mm]])){     ## loop over l (components)
-        
-        dfplot <- data.frame(nu=object$nu[[mm]][,ll],
-                             iter=1:nrow(object$nu[[mm]]) )
-        
-        p <- ggplot(dfplot, aes_string(x="iter", y="nu"))+
-          geom_line(linetype=1)+ ## 3 is dotted
-          ylab("Nu")+
-          xlab("Iteration")+
-          ggtitle(paste("Nu: Index",mm,", Component",ll))+
-          theme_bw() +
-          theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
-        plots_m[[ll]] <- p
-      }
-      plots_nu[[mm]] <- plots_m
-    }
+  	if(!is.null(object["nu"][[1]])){
+  	  for(mm in 1:length(object$nu)){                 ## loop over m (indices)
+  	    plots_m <- list()
+  	    for(ll in 1:ncol(object$nu[[mm]])){     ## loop over l (components)
+  	      
+  	      dfplot <- data.frame(nu=object$nu[[mm]][,ll],
+  	                           iter=1:nrow(object$nu[[mm]]) )
+  	      
+  	      p <- ggplot(dfplot, aes_string(x="iter", y="nu"))+
+  	        geom_line(linetype=1)+ ## 3 is dotted
+  	        ylab("Nu")+
+  	        xlab("Iteration")+
+  	        ggtitle(paste("Nu: Index",mm,", Component",ll))+
+  	        theme_bw() +
+  	        theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
+  	      plots_m[[ll]] <- p
+  	    }
+  	    plots_nu[[mm]] <- plots_m
+  	  }
+  	}
+  	
 
 
   
@@ -117,16 +120,20 @@ plot_trace2 <- function(object){
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
   
   ## tau
-    dfplot <- data.frame(tau=object$tau,
-                         iter=1:length(object$tau) )
-    plot_tau <- ggplot(dfplot, aes_string(x="iter", y="tau"))+
-      geom_line(linetype=1)+ ## 3 is dotted
-      ylab("Tau")+
-      xlab("Iteration")+
-      ggtitle(paste("Tau"))+
-      theme_bw() +
-      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
-
+    if(!is.null(object["tau"][[1]])){
+      dfplot <- data.frame(tau=object$tau,
+                           iter=1:length(object$tau) )
+      plot_tau <- ggplot(dfplot, aes_string(x="iter", y="tau"))+
+        geom_line(linetype=1)+ ## 3 is dotted
+        ylab("Tau")+
+        xlab("Iteration")+
+        ggtitle(paste("Tau"))+
+        theme_bw() +
+        theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
+    }else{
+      plot_tau <- NULL
+    }
+    
   
   
   ## sigma2
