@@ -540,6 +540,8 @@ predict_hnew_assoc2 <- function(object,
 #' @param qtl_lims Quantile limits for grid of exposure values
 #' @param crossM Exposure to set a cross section quantile for
 #' @param qtl quantile for the cross section
+#' @param grid_lims Optional (absolute) index limits for grid of index values (alternative to the default use of quantiles)
+#' @param abs_grid Should the absolute index limits be used (TRUE), or the standard quantile limits (FALSE; default)
 #' @param trueW weights for prediction for comparison to true curve; if NULL then set to posterior mean
 #' @importFrom stats median
 #' @return a dataframe containing predicted values.
@@ -551,6 +553,8 @@ predict_hnew_indexwise2 <- function(object,
                                    qtl_lims=c(0.05,0.95),
                                    crossM=0, 
                                    qtl=0.5,
+                                   grid_lims=c(-2,2),
+                                   abs_grid=FALSE,
                                    trueW=NULL){
   
   ## dimensions
@@ -579,7 +583,11 @@ predict_hnew_indexwise2 <- function(object,
       theta_tempA[apply(theta_tempA,1,function(x) sum(x!=0)==0),] <- 1/sqrt(ncol(theta_tempA))
       Ebar[,m] <- apply(object$x[[m]] %*% t(theta_tempA ),1,mean) # old version applied basis after error handling: # apply(object$x[[m]] %*% t(theta_temp %*% t(object$basis[[m]]$psi)),1,mean)
     }
-    gridpoints[,m] <- seq(quantile(Ebar[,m],qtl_lims[1]),quantile(Ebar[,m],qtl_lims[2]), length=points)  ## set mth column to a grid of points form the 5th to 95th percentile, with evenly spaced points (not at percentiles)
+    if(abs_grid==TRUE){ ## absolute grid
+      gridpoints[,m] <- seq(grid_lims[1],grid_lims[2], length=points)  ## set mth column to a grid of points form the 5th to 95th percentile, with evenly spaced points (not at percentiles)
+    }else{
+      gridpoints[,m] <- seq(quantile(Ebar[,m],qtl_lims[1]),quantile(Ebar[,m],qtl_lims[2]), length=points)  ## set mth column to a grid of points form the 5th to 95th percentile, with evenly spaced points (not at percentiles)
+    }
     Xmedian[[m]] <- apply(object$x[[m]],2,median) 
     psi[[m]] <- object$basis[[m]]$psi  ## list
   }
