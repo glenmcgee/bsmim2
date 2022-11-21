@@ -625,11 +625,12 @@ List bsmim_spikeslab_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z do
   for(int m=0; m<M; m++){
     X[m] = as<arma::mat>(Xlist[m]);                 // mth matrix in X is X_m
     Lvec(m) = X[m].n_cols;                          // mth element of Lvec is L_m (the length of \thetaStar_m)
+    delta[m] = as<arma::vec>(rbinom(Lvec(m),1,0.5));  // now randomly initializing inclusion indicators                     // set starting value for \delta_m
     thetaStar[m] = as<arma::vec>(rnorm(Lvec(m)));   // set starting value for \thetaStar_m
+    for(int l=0; l<Lvec(m); l++){
+      thetaStar[m](l) = delta[m](l)*thetaStar[m](l); // set to 0 if delta initialized to zero
+    }
     XthetaStar.col(m) = X[m] * thetaStar[m];
-    
-    arma::vec deltatemp(Lvec(m),arma::fill::ones); // temporary vec with L_m elements to store posteror draws of delta
-    delta[m] = deltatemp;                          // set starting value for \delta_m
   }
   // starting vals must respect bounds of prior
   for(int m=0; m<M; m++){
@@ -1126,11 +1127,12 @@ List bsmim_spikeslab_gaussprior_mcmc2(const arma::mat&    yz,         // matrix 
   for(int m=0; m<M; m++){
     X[m] = as<arma::mat>(Xlist[m]);                 // mth matrix in X is X_m
     Lvec(m) = X[m].n_cols;                          // mth element of Lvec is L_m (the length of \thetaStar_m)
+    delta[m] = as<arma::vec>(rbinom(Lvec(m),1,0.5));  // now randomly initializing inclusion indicators                     // set starting value for \delta_m
     thetaStar[m] = as<arma::vec>(rnorm(Lvec(m)));   // set starting value for \thetaStar_m
+    for(int l=0; l<Lvec(m); l++){
+      thetaStar[m](l) = delta[m](l)*thetaStar[m](l); // set to 0 if delta initialized to zero
+    }
     XthetaStar.col(m) = X[m] * thetaStar[m];
-    
-    arma::vec deltatemp(Lvec(m),arma::fill::ones); // temporary vec with L_m elements to store posteror draws of delta
-    delta[m] = deltatemp;                          // set starting value for \delta_m
   }
   // // starting vals must respect bounds of prior
   // for(int m=0; m<M; m++){
@@ -1614,12 +1616,18 @@ List bsmim_informative_mcmc2(const arma::mat&    yz,         // matrix [Y,Z], Z 
     if(thetaconstraint[m]>0){
       thetaStar[m] = pow(thetaStar[m],2);   // set starting value for \thetaStar_m
     }
-    XthetaStar.col(m) = X[m] * thetaStar[m]; 
+    if(thetaconstraint[m]<2){
+      delta[m] = as<arma::vec>(rbinom(Lvec(m),1,0.5));  // now randomly initializing inclusion indicators                     // set starting value for \delta_m
+    }else{
+      arma::vec deltatemp(Lvec(m),arma::fill::ones); // temporary vec with L_m elements to store posteror draws of delta
+      delta[m] = deltatemp;                          // set starting value for \delta_m
+    }
+    for(int l=0; l<Lvec(m); l++){
+      thetaStar[m](l) = delta[m](l)*thetaStar[m](l); // set to 0 if delta initialized to zero
+    }
+    XthetaStar.col(m) = X[m] * thetaStar[m];
     alpha[m] = as<arma::vec>(alphas[m]);   // alphas for dirichlet
     a_slabposfield[m] = as<arma::vec>(a_slabpos[m]); // a_slabpos for constraints=1 
-    
-    arma::vec deltatemp(Lvec(m),arma::fill::ones); // temporary vec with L_m elements to store posteror draws of delta
-    delta[m] = deltatemp;                          // set starting value for \delta_m
   }
   
   // count constraints
