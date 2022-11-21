@@ -51,12 +51,14 @@ plot_univar_hnew_old2 <- function(pred,ylims=NULL){
 }
 Plot component-wise response curves}
 \usage{
-plot_univar_hnew_indexwise2(pred, ylims = NULL)
+plot_univar_hnew_indexwise2(pred, ylims = NULL, centered = TRUE)
 }
 \arguments{
 \item{pred}{An object of class hpred_indexwise}
 
 \item{ylims}{An optional vector of length 2 containing the limits for the y axis; default is null}
+
+\item{centered}{Remove intercept; default is TRUE}
 }
 \value{
 a list of component-wise response-curve plots .

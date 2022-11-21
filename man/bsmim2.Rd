@@ -35,7 +35,10 @@ bsmim2(
   prior_slabpos = c(0.4, 1.6),
   prior_slabpos_shape_inf = NULL,
   prior_alphas = NULL,
-  prior_slabrho = c(4, 2)
+  prior_slabrho = c(4, 2),
+  centering = TRUE,
+  scaling = TRUE,
+  nchains = 1
 )
 }
 \arguments{
@@ -98,6 +101,12 @@ bsmim2(
 \item{prior_alphas}{List of alpha hyperparameters for dirichlet prior on weights (under constraints=2)}
 
 \item{prior_slabrho}{Shape and rate for gamma prior on rho^{1/2} (under constraints=2)}
+
+\item{centering}{Should covariates be centered to have mean 0.  Default is TRUE.}
+
+\item{scaling}{Should covariates be scaled to have standard deviation 1.  Default is TRUE.}
+
+\item{nchains}{Number of chains (default=1)}
 }
 \value{
 An object of class 'bsmim'.

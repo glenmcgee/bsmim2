@@ -39,6 +39,7 @@
 #' @param polydegree Degree of polynomial when polynomial kernel is used.  Only applies when gaussian=FALSE.
 #' @param centering Should covariates be centered to have mean 0.  Default is TRUE.
 #' @param scaling Should covariates be scaled to have standard deviation 1.  Default is TRUE.
+#' @param nchains Number of chains (default=1)
 #' @return An object of class 'bsmim'.
 #' @author Glen McGee and Ander Wilson (adapted from the "regimes" package by Ander Wilson).
 #' @importFrom stats model.matrix sd var qnorm
@@ -78,7 +79,8 @@ bsmim2 <- function(y,
                    prior_alphas=NULL,    ## M-List of alpha hyperparameters for dirichlet prior on weights (under constraints=2)
                    prior_slabrho=c(4,2), ## shape and rate for gamma prior on rho^{1/2} (under constraints=2)
                    centering=TRUE, ## should covariates be centered to have mean=0
-                   scaling=TRUE){ ## should covariates be scaled to have SD=1
+                   scaling=TRUE,  ## should covariates be scaled to have SD=1
+                   nchains=1){
   
   
   
@@ -298,194 +300,230 @@ bsmim2 <- function(y,
   ########################
   ## fit model
   ########################
+  chains <- vector(mode = "list", length = nchains)
   
-  if(spike_slab==TRUE){
-    if(gauss_prior==TRUE){
-      if(sum(constraints)==0){
-        fit <- bsmim_spikeslab_gaussprior_mcmc2(yz=cbind(y,Z),
-                                                Xlist= X,
-                                                a_lam=prior_lambda_shaperate[1],
-                                                b_lam=prior_lambda_shaperate[2],
-                                                b_lambdaB=prior_lambdaB[1],
-                                                a_sig=prior_sigma[1],
-                                                b_sig=prior_sigma[2],
-                                                s_theta=prior_theta_slab_sd,
-                                                step_theta=stepsize_theta,
-                                                a_pi=prior_pi[1],
-                                                b_pi=prior_pi[2],
-                                                poly=(1-gaussian),
-                                                d=polydegree,
-                                                randint=randint,
-                                                Bmat=Bmat,
-                                                draw_h=draw_h,
-                                                num_theta_steps=num_theta_steps,
-                                                n_inner=nthin,
-                                                n_outer=round(niter/nthin),
-                                                n_burn=round(nburn/nthin))
-        
-      }else{ ### informative priors (+spikeslab varselection +gauss prior)
-        fit <- bsmim_informative_mcmc2(yz=cbind(y,Z),
-                                       Xlist= X,
-                                       a_lam=prior_lambda_shaperate[1],
-                                       b_lam=prior_lambda_shaperate[2],
-                                       b_lambdaB=prior_lambdaB[1],
-                                       a_sig=prior_sigma[1],
-                                       b_sig=prior_sigma[2],
-                                       s_theta=prior_theta_slab_sd,
-                                       step_theta=stepsize_theta,
-                                       a_pi=prior_pi[1],
-                                       b_pi=prior_pi[2],
-                                       poly=(1-gaussian),
-                                       d=polydegree,
-                                       randint=randint,
-                                       Bmat=Bmat,
-                                       draw_h=draw_h,
-                                       thetaconstraint=constraints,
-                                       a_slabpos=prior_slabpos_shape_inf, # old version: prior_slabpos[1],  # now is a list to allow informative prior choices
-                                       b_slabpos=prior_slabpos[2], 
-                                       alphas=prior_alphas,    
-                                       a_rho=prior_slabrho[1],     
-                                       b_rho=prior_slabrho[2],
-                                       num_theta_steps=num_theta_steps,
-                                       n_inner=nthin,
-                                       n_outer=round(niter/nthin),
-                                       n_burn=round(nburn/nthin))
+  for(cc in 1:nchains){  ## multiple chains if possible
+    if(spike_slab==TRUE){
+      if(gauss_prior==TRUE){
+        if(sum(constraints)==0){
+          fit <- bsmim_spikeslab_gaussprior_mcmc2(yz=cbind(y,Z),
+                                                  Xlist= X,
+                                                  a_lam=prior_lambda_shaperate[1],
+                                                  b_lam=prior_lambda_shaperate[2],
+                                                  b_lambdaB=prior_lambdaB[1],
+                                                  a_sig=prior_sigma[1],
+                                                  b_sig=prior_sigma[2],
+                                                  s_theta=prior_theta_slab_sd,
+                                                  step_theta=stepsize_theta,
+                                                  a_pi=prior_pi[1],
+                                                  b_pi=prior_pi[2],
+                                                  poly=(1-gaussian),
+                                                  d=polydegree,
+                                                  randint=randint,
+                                                  Bmat=Bmat,
+                                                  draw_h=draw_h,
+                                                  num_theta_steps=num_theta_steps,
+                                                  n_inner=nthin,
+                                                  n_outer=round(niter/nthin),
+                                                  n_burn=round(nburn/nthin))
+          
+        }else{ ### informative priors (+spikeslab varselection +gauss prior)
+          fit <- bsmim_informative_mcmc2(yz=cbind(y,Z),
+                                         Xlist= X,
+                                         a_lam=prior_lambda_shaperate[1],
+                                         b_lam=prior_lambda_shaperate[2],
+                                         b_lambdaB=prior_lambdaB[1],
+                                         a_sig=prior_sigma[1],
+                                         b_sig=prior_sigma[2],
+                                         s_theta=prior_theta_slab_sd,
+                                         step_theta=stepsize_theta,
+                                         a_pi=prior_pi[1],
+                                         b_pi=prior_pi[2],
+                                         poly=(1-gaussian),
+                                         d=polydegree,
+                                         randint=randint,
+                                         Bmat=Bmat,
+                                         draw_h=draw_h,
+                                         thetaconstraint=constraints,
+                                         a_slabpos=prior_slabpos_shape_inf, # old version: prior_slabpos[1],  # now is a list to allow informative prior choices
+                                         b_slabpos=prior_slabpos[2], 
+                                         alphas=prior_alphas,    
+                                         a_rho=prior_slabrho[1],     
+                                         b_rho=prior_slabrho[2],
+                                         num_theta_steps=num_theta_steps,
+                                         n_inner=nthin,
+                                         n_outer=round(niter/nthin),
+                                         n_burn=round(nburn/nthin))
+        }
+  
+      }else{
+        fit <- bsmim_spikeslab_mcmc2(yz=cbind(y,Z),
+                                     Xlist= X,
+                                     a_lam=prior_lambda_shaperate[1],
+                                     b_lam=prior_lambda_shaperate[2],
+                                     b_lambdaB=prior_lambdaB[1],
+                                     a_sig=prior_sigma[1],
+                                     b_sig=prior_sigma[2],
+                                     a_theta=prior_theta_slab_bounds[1],
+                                     b_theta=prior_theta_slab_bounds[2],
+                                     step_theta=stepsize_theta,
+                                     a_pi=prior_pi[1],
+                                     b_pi=prior_pi[2],
+                                     poly=(1-gaussian),
+                                     d=polydegree,
+                                     randint=randint,
+                                     Bmat=Bmat,
+                                     draw_h=draw_h,
+                                     num_theta_steps=num_theta_steps,
+                                     n_inner=nthin,
+                                     n_outer=round(niter/nthin),
+                                     n_burn=round(nburn/nthin))
       }
-
     }else{
-      fit <- bsmim_spikeslab_mcmc2(yz=cbind(y,Z),
-                                   Xlist= X,
-                                   a_lam=prior_lambda_shaperate[1],
-                                   b_lam=prior_lambda_shaperate[2],
-                                   b_lambdaB=prior_lambdaB[1],
-                                   a_sig=prior_sigma[1],
-                                   b_sig=prior_sigma[2],
-                                   a_theta=prior_theta_slab_bounds[1],
-                                   b_theta=prior_theta_slab_bounds[2],
-                                   step_theta=stepsize_theta,
-                                   a_pi=prior_pi[1],
-                                   b_pi=prior_pi[2],
-                                   poly=(1-gaussian),
-                                   d=polydegree,
-                                   randint=randint,
-                                   Bmat=Bmat,
-                                   draw_h=draw_h,
-                                   num_theta_steps=num_theta_steps,
-                                   n_inner=nthin,
-                                   n_outer=round(niter/nthin),
-                                   n_burn=round(nburn/nthin))
+      fit <- bsmim_mcmc2(yz=cbind(y,Z),
+                         Xlist= X,
+                         b_lambda=prior_lambda[1],
+                         b_lambdaB=prior_lambdaB[1],
+                         a_sig=prior_sigma[1],
+                         b_sig=prior_sigma[2],
+                         tau02=prior_tau,
+                         kappa=kappavec,
+                         poly=(1-gaussian),
+                         d=polydegree,
+                         horseshoe=horseshoe,
+                         randint=randint,
+                         Bmat=Bmat,
+                         draw_h=draw_h,
+                         n_inner=nthin,
+                         n_outer=round(niter/nthin),
+                         n_burn=round(nburn/nthin))
     }
-  }else{
-    fit <- bsmim_mcmc2(yz=cbind(y,Z),
-                       Xlist= X,
-                       b_lambda=prior_lambda[1],
-                       b_lambdaB=prior_lambdaB[1],
-                       a_sig=prior_sigma[1],
-                       b_sig=prior_sigma[2],
-                       tau02=prior_tau,
-                       kappa=kappavec,
-                       poly=(1-gaussian),
-                       d=polydegree,
-                       horseshoe=horseshoe,
-                       randint=randint,
-                       Bmat=Bmat,
-                       draw_h=draw_h,
-                       n_inner=nthin,
-                       n_outer=round(niter/nthin),
-                       n_burn=round(nburn/nthin))
-  }
-
-  ########################
-  ## remove burnin
-  ########################
-  #remove burnin for theta, w, nu (all lists)
-  fit$w <- list()
-  for(m in 1:M){
-    
-    ## theta
-    fit$theta[[m]] <- as.matrix(fit$theta[[m]][(nburn/nthin+1):(niter/nthin),])
-    ## handle NAs
-    fit$theta[[m]][is.na(fit$theta[[m]])] <- 0
-    # flip sign to impose positivity constraint
-    cmw <- rowMeans(fit$theta[[m]]%*%t(B[[m]]$psi))
-    if(any(cmw<0)){
-      fit$theta[[m]][which(cmw<0),] <- -fit$theta[[m]][which(cmw<0),]
-    }
-
-    # ### CHECK RESCALING:
-    # ## 1) do we need this rescaling?
-    # ## 2) ander parameterizes rho differently--I don't think it should be divided here... maybe im wrong
-    # # rescale to divide by number of exposures
-    # fit$theta[[m]] <- fit$theta[[m]]*sqrt(nrow(B[[m]]$psi))
-    # fit$rho[,m] <- fit$rho[,m]*sqrt(nrow(B[[m]]$psi)) ## also ander parameterizes rho differently I think so i doubt we would divide here
   
-    ## w
-    fit$w[[m]] <- (fit$theta[[m]]%*%t(B[[m]]$psi))/matrix(sdx[[m]],nrow=nrow(fit$theta[[m]]),ncol=length(sdx[[m]]),byrow=TRUE) #EDIT: scale by standard deviations IF using scaling above; otherwise sdx is just a vector of 1s
-    ## NEW EDIT: standardize w's so that they are still identifiabile after transformation
-    fit$w[[m]] <- fit$w[[m]]/apply(fit$w[[m]],1,function(x) sqrt(sum(x^2)))
-    ## handle NAs
-    fit$w[[m]][is.na(fit$w[[m]])] <- 0
-  }
-  if(!is.null(xnames)) names(fit$theta) <- xnames
-  
-  if(sum(constraints)>0){
-    fit$wPOS <- list()
+    ########################
+    ## remove burnin
+    ########################
+    #remove burnin for theta, w, nu (all lists)
+    fit$w <- list()
     for(m in 1:M){
-      if(constraints[m]>0){
-        ## thetaPOS is the reparameterization for when theta are all non-negative, such that they sum to 1
-        fit$thetaPOS[[m]] <- as.matrix(fit$thetaPOS[[m]][(nburn/nthin+1):(niter/nthin),])
-        ## handle NAs
-        fit$thetaPOS[[m]][is.na(fit$thetaPOS[[m]])] <- 0
-        # ## doesnt work this way: need to apply transformation then reparameterize
-        # fit$wPOS[[m]] <- fit$thetaPOS[[m]]%*%t(B[[m]]$psi)
-        ## wPOS is the reparameterization for when w are all non-negative, such that they sum to 1
-        fit$wPOS[[m]] <- fit$w[[m]]/apply(fit$w[[m]],1,sum)
-        ## handle NAs
-        fit$wPOS[[m]][is.na(fit$wPOS[[m]])] <- 0
+      
+      ## theta
+      fit$theta[[m]] <- as.matrix(fit$theta[[m]][(nburn/nthin+1):(niter/nthin),])
+      ## handle NAs
+      fit$theta[[m]][is.na(fit$theta[[m]])] <- 0
+      # flip sign to impose positivity constraint
+      cmw <- rowMeans(fit$theta[[m]]%*%t(B[[m]]$psi))
+      if(any(cmw<0)){
+        fit$theta[[m]][which(cmw<0),] <- -fit$theta[[m]][which(cmw<0),]
+      }
+  
+      # ### CHECK RESCALING:
+      # ## 1) do we need this rescaling?
+      # ## 2) ander parameterizes rho differently--I don't think it should be divided here... maybe im wrong
+      # # rescale to divide by number of exposures
+      # fit$theta[[m]] <- fit$theta[[m]]*sqrt(nrow(B[[m]]$psi))
+      # fit$rho[,m] <- fit$rho[,m]*sqrt(nrow(B[[m]]$psi)) ## also ander parameterizes rho differently I think so i doubt we would divide here
+    
+      ## w
+      fit$w[[m]] <- (fit$theta[[m]]%*%t(B[[m]]$psi))/matrix(sdx[[m]],nrow=nrow(fit$theta[[m]]),ncol=length(sdx[[m]]),byrow=TRUE) #EDIT: scale by standard deviations IF using scaling above; otherwise sdx is just a vector of 1s
+      ## NEW EDIT: standardize w's so that they are still identifiabile after transformation
+      fit$w[[m]] <- fit$w[[m]]/apply(fit$w[[m]],1,function(x) sqrt(sum(x^2)))
+      ## handle NAs
+      fit$w[[m]][is.na(fit$w[[m]])] <- 0
+    }
+    if(!is.null(xnames)) names(fit$theta) <- xnames
+    
+    if(sum(constraints)>0){
+      fit$wPOS <- list()
+      for(m in 1:M){
+        if(constraints[m]>0){
+          ## thetaPOS is the reparameterization for when theta are all non-negative, such that they sum to 1
+          fit$thetaPOS[[m]] <- as.matrix(fit$thetaPOS[[m]][(nburn/nthin+1):(niter/nthin),])
+          ## handle NAs
+          fit$thetaPOS[[m]][is.na(fit$thetaPOS[[m]])] <- 0
+          # ## doesnt work this way: need to apply transformation then reparameterize
+          # fit$wPOS[[m]] <- fit$thetaPOS[[m]]%*%t(B[[m]]$psi)
+          ## wPOS is the reparameterization for when w are all non-negative, such that they sum to 1
+          fit$wPOS[[m]] <- fit$w[[m]]/apply(fit$w[[m]],1,sum)
+          ## handle NAs
+          fit$wPOS[[m]][is.na(fit$wPOS[[m]])] <- 0
+        }
+        
+      }
+      if(!is.null(xnames)) names(fit$thetaPOS) <- xnames}
+      
+  
+  
+    #remove burnin for other values
+    fit$lambdaInverse <- fit$lambdaInverse[(nburn/nthin+1):(niter/nthin),]
+    fit$lambdaBInverse <- fit$lambdaBInverse[(nburn/nthin+1):(niter/nthin),]
+    fit$rho <- fit$rho[(nburn/nthin+1):(niter/nthin),]
+    fit$hsamp <- fit$hsamp[(nburn/nthin+1):(niter/nthin),]
+    fit$sigma2 <- fit$sigma2[(nburn/nthin+1):(niter/nthin),]
+    fit$gamma <- fit$gamma[(nburn/nthin+1):(niter/nthin),]
+    if(!is.null(colnames(Z))){
+      colnames(fit$gamma) <- colnames(Z)
+    } 
+    if(spike_slab==TRUE){
+      fit$tau <- NULL
+      fit$nu <- NULL
+      
+      for(m in 1:length(fit$theta)){
+        fit$theta[[m]][is.na(fit$theta[[m]])] <- 1/sqrt(ncol(fit$theta[[m]]))
       }
       
-    }
-    if(!is.null(xnames)) names(fit$thetaPOS) <- xnames}
-    
-
-
-  #remove burnin for other values
-  fit$lambdaInverse <- fit$lambdaInverse[(nburn/nthin+1):(niter/nthin),]
-  fit$lambdaBInverse <- fit$lambdaBInverse[(nburn/nthin+1):(niter/nthin),]
-  fit$rho <- fit$rho[(nburn/nthin+1):(niter/nthin),]
-  fit$hsamp <- fit$hsamp[(nburn/nthin+1):(niter/nthin),]
-  fit$sigma2 <- fit$sigma2[(nburn/nthin+1):(niter/nthin),]
-  fit$gamma <- fit$gamma[(nburn/nthin+1):(niter/nthin),]
-  if(!is.null(colnames(Z))){
-    colnames(fit$gamma) <- colnames(Z)
-  } 
-  if(spike_slab==TRUE){
-    fit$tau <- NULL
-    fit$nu <- NULL
-    
-    for(m in 1:length(fit$theta)){
-      fit$theta[[m]][is.na(fit$theta[[m]])] <- 1/sqrt(ncol(fit$theta[[m]]))
-    }
-    
-    
-    
-    
-  }else{
-    ## remove burnin for tau and nu
-    if(horseshoe==1){ ## under horseshoe prior
-      fit$tau <- fit$tau[(nburn/nthin+1):(niter/nthin),]
-      for(m in 1:M){ ## nu is a list
-        fit$nu[[m]] <- as.matrix(fit$nu[[m]])[(nburn/nthin+1):(niter/nthin),]
+      
+      
+      
+    }else{
+      ## remove burnin for tau and nu
+      if(horseshoe==1){ ## under horseshoe prior
+        fit$tau <- fit$tau[(nburn/nthin+1):(niter/nthin),]
+        for(m in 1:M){ ## nu is a list
+          fit$nu[[m]] <- as.matrix(fit$nu[[m]])[(nburn/nthin+1):(niter/nthin),]
+        }
+      }else{ ## otherwise there is no tau
+        fit$tau <- NULL
+        for(m in 1:M){ ## delete excess columns for nu
+          fit$nu[[m]] <- as.matrix(fit$nu[[m]])[(nburn/nthin+1):(niter/nthin),1]
+        }
       }
-    }else{ ## otherwise there is no tau
-      fit$tau <- NULL
-      for(m in 1:M){ ## delete excess columns for nu
-        fit$nu[[m]] <- as.matrix(fit$nu[[m]])[(nburn/nthin+1):(niter/nthin),1]
+    }
+    chains[[cc]] <- fit
+  }
+  
+  fit <- chains[[1]] ##
+  if(nchains>1){
+    for(cc in 1:nchains){ ## pool results over chains
+      for(m in 1:M){
+        fit$theta[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","theta"),function(obj) obj[[m]]))
+        fit$w[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","w"),function(obj) obj[[m]]))
+      }
+      if(sum(constraints)>0){
+        for(m in 1:M){
+          if(constraints[m]>0){
+            fit$thetaPOS[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","thetaPOS"),function(obj) obj[[m]]))
+            fit$wPOS[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","wPOS"),function(obj) obj[[m]]))
+          }
+        }
+      }
+      fit$lambdaInverse <- do.call(c,lapply(chains,"[[","lambdaInverse"))
+      fit$lambdaBInverse <-  do.call(c,lapply(chains,"[[","lambdaBInverse"))
+      fit$rho <-  do.call(rbind,lapply(chains,"[[","rho"))
+      fit$hsamp <-  do.call(rbind,lapply(chains,"[[","hsamp"))
+      fit$sigma2 <-  do.call(c,lapply(chains,"[[","sigma2"))
+      fit$gamma <-  do.call(rbind,lapply(chains,"[[","gamma"))
+      if(spike_slab==FALSE){
+        for(m in 1:M){ ## nu is a list
+          fit$nu[[m]] <- do.call(c,lapply(lapply(chains,"[[","nu"),function(obj) obj[[m]]))
+        }
+        if(horseshoe==1){ ## under horseshoe prior
+          fit$tau <- do.call(c,lapply(chains,"[[","tau"))
+        }
       }
     }
   }
-
-
+  
+  
   
   ########################
   ## check model fit
@@ -582,6 +620,7 @@ bsmim2 <- function(y,
   fit$prior_slabrho <- prior_slabrho
   fit$centering <- centering
   fit$scaling <- scaling
+  fit$nchains <- nchains
   
   fit$call <- match.call()
   class(fit) <- "bsmim"
@@ -826,3 +865,107 @@ summarize_thetas <- function(obj,
     }
   return(res)
 }
+
+
+#-------------------------------------------------------------------------------------------------
+#' Compute PSR 
+#'#'
+#' @param x a vector of pooled mcmc draws
+#' @param nchains number of mcmc chains
+#' 
+#' @return A list PSR factors
+#' @author Glen McGee
+#' @export
+get_PSR <- function(x,nchains){
+  MM <- nchains
+  NN <- length(x)/MM
+
+  # split chains post hoc
+  xlist <- vector(mode = "list", length = MM)
+  for(ii in 1:MM){
+    xlist[[ii]] <- x[NN*(ii-1)+(1:NN)]
+  }
+  
+  ## between chain variance
+  samplemeans <- sapply(xlist,mean)
+  B <- NN*var(samplemeans)
+  
+  ## within chain variance
+  W <- mean(sapply(xlist,var))
+  
+  ## 
+  varplus <- W*((NN-1)/NN)+B/NN ## 
+  
+  return(sqrt(varplus/W))
+  
+}
+
+#-------------------------------------------------------------------------------------------------
+#' Summarize convergence via PSR factors
+#'#'
+#' @param obj An object of class bsmim
+#' 
+#' @return A list PSR factors
+#' @author Glen McGee
+#' @export
+check_conv <- function(fit){
+  MM <- fit$nchains
+  psr_theta <- lapply(fit$theta,function(mat) apply(as.matrix(mat),2,function(x) get_PSR(x,MM)))
+  psr_w <- lapply(fit$w,function(mat) apply(as.matrix(mat),2,function(x) get_PSR(x,MM)))
+  if(sum(fit$constraints)>0){
+    psr_thetaPOS <- vector(mode = "list", length = MM)
+    psr_wPOS <- vector(mode = "list", length = MM)
+    for(mm in 1:MM)
+      if(!is.null(fit$wPOS[[mm]])){
+        psr_thetaPOS[[mm]] <-  apply(as.matrix(fit$thetaPOS[[mm]]),2,function(x) get_PSR(x,MM))
+        psr_wPOS[[mm]] <-  apply(as.matrix(fit$wPOS[[mm]]),2,function(x) get_PSR(x,MM))
+      }else{
+        psr_thetaPOS[[mm]] <- NA
+        psr_wPOS[[mm]] <- NA
+      }
+  }else{
+    psr_thetaPOS <- NA
+    psr_wPOS <- NA
+  }
+  psr_lambdaInverse <- get_PSR(fit$lambdaInverse,MM)
+  if(var(fit$lambdaBInverse)>0){
+    psr_lambdaBInverse <-  get_PSR(fit$lambdaBInverse,MM)
+  }else{
+    psr_lambdaBInverse <- NA
+  }
+  psr_rho <-  apply(fit$rho,2,function(x) get_PSR(x,MM))
+  if(fit$draw_h){
+    psr_hsamp <-  apply(fit$hsamp,2,function(x) get_PSR(x,MM))
+  }else{
+    psr_hsamp <- NA
+  }
+  psr_sigma2 <-  get_PSR(fit$sigma2,MM)
+  psr_gamma <-  apply(fit$gamma,2,function(x) get_PSR(x,MM))
+  if(fit$spike_slab==FALSE){
+    psr_nu <- lapply(fit$nu,function(mat) apply(as.matrix(mat),2,function(x) get_PSR(x,MM)))
+    if(fit$horseshoe==1){ ## under horseshoe prior
+      psr_tau <- get_PSR(fit$tau,MM)
+    }else{
+      psr_tau <- NA
+    }
+  }else{
+    psr_nu <- NA
+    psr_tau <- NA
+  }
+  
+  return(list(theta=psr_theta,
+              w=psr_w,
+              thetaPOS=psr_thetaPOS,
+              wPOS=psr_wPOS,
+              lambdaInverse=psr_lambdaInverse,
+              lambdaBInverse=psr_lambdaBInverse,
+              hsamp=psr_hsamp,
+              sigma2=psr_sigma2,
+              gamma=psr_gamma,
+              nu=psr_nu,
+              tau=psr_tau))
+}
+
+
+
+

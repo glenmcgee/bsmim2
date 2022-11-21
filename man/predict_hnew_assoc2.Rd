@@ -9,6 +9,9 @@ predict_hnew_assoc2(
   qtl_lims = c(0.05, 0.95),
   qtls = list(NA),
   compare_qtl = 0.5,
+  points = 19,
+  newXcontrast = NULL,
+  rawX = TRUE,
   overall = FALSE,
   approx = FALSE
 )
@@ -21,6 +24,12 @@ predict_hnew_assoc2(
 \item{qtls}{M-list of Lm-vectors containing quantiles to set exposure components to}
 
 \item{compare_qtl}{quantile to compare all others to}
+
+\item{points}{number of points (including compare_qtl) to compare}
+
+\item{newXcontrast}{list containing new covariate matrices to compare; final row of each matrix is the comparator; overrides points, qtls, qtl_lims, compare_qtl}
+
+\item{rawX}{set to TRUE if newX needs to first be preprocessed; only used if newXcontrast is non null}
 
 \item{overall}{should the 'overall' effect be reported}
 

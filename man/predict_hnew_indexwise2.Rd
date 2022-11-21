@@ -10,6 +10,8 @@ predict_hnew_indexwise2(
   qtl_lims = c(0.05, 0.95),
   crossM = 0,
   qtl = 0.5,
+  grid_lims = c(-2, 2),
+  abs_grid = FALSE,
   trueW = NULL
 )
 }
@@ -23,6 +25,10 @@ predict_hnew_indexwise2(
 \item{crossM}{Exposure to set a cross section quantile for}
 
 \item{qtl}{quantile for the cross section}
+
+\item{grid_lims}{Optional (absolute) index limits for grid of index values (alternative to the default use of quantiles)}
+
+\item{abs_grid}{Should the absolute index limits be used (TRUE), or the standard quantile limits (FALSE; default)}
 
 \item{trueW}{weights for prediction for comparison to true curve; if NULL then set to posterior mean}
 }

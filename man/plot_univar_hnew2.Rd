@@ -4,7 +4,7 @@
 \alias{plot_univar_hnew2}
 \title{Plot component-wise response curves}
 \usage{
-plot_univar_hnew2(pred, ylims = NULL, assoc = TRUE)
+plot_univar_hnew2(pred, ylims = NULL, assoc = TRUE, centered = TRUE)
 }
 \arguments{
 \item{pred}{An object of class hpred}
@@ -12,6 +12,8 @@ plot_univar_hnew2(pred, ylims = NULL, assoc = TRUE)
 \item{ylims}{An optional vector of length 2 containing the limits for the y axis; default is null}
 
 \item{assoc}{Report contrasts}
+
+\item{centered}{Remove intercept; default is TRUE}
 }
 \value{
 a list of component-wise response-curve plots .

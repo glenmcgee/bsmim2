@@ -4,12 +4,16 @@
 \alias{summarize_thetas}
 \title{Summarize posterior of thetas (weights)}
 \usage{
-summarize_thetas(obj, w = FALSE)
+summarize_thetas(obj, w = FALSE, computeBF = TRUE, ndrawsBF = 8000)
 }
 \arguments{
 \item{obj}{An object of class bsmim}
 
 \item{w}{Should ws be reported instead of thetas? (ws are original weights before pre-transformation)}
+
+\item{computeBF}{Should (MARGINAL) Bayes Factors for componentwise and indexwise inclusion be computed?}
+
+\item{ndrawsBF}{Number of draws from prior; used for computing Bayes Factors for inclusion}
 }
 \value{
 A list of length M of data.frames summarizing theta estimates.
