@@ -495,23 +495,23 @@ bsmim2 <- function(y,
   if(nchains>1){
     for(cc in 1:nchains){ ## pool results over chains
       for(m in 1:M){
-        fit$theta[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","theta"),function(obj) obj[[m]]))
-        fit$w[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","w"),function(obj) obj[[m]]))
+        fit$theta[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","theta"),function(obj) as.matrix(obj[[m]])))
+        fit$w[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","w"),function(obj) as.matrix(obj[[m]])))
       }
       if(sum(constraints)>0){
         for(m in 1:M){
           if(constraints[m]>0){
-            fit$thetaPOS[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","thetaPOS"),function(obj) obj[[m]]))
-            fit$wPOS[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","wPOS"),function(obj) obj[[m]]))
+            fit$thetaPOS[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","thetaPOS"),function(obj) as.matrix(obj[[m]])))
+            fit$wPOS[[m]] <- do.call(rbind,lapply(lapply(chains,"[[","wPOS"),function(obj) as.matrix(obj[[m]])))
           }
         }
       }
       fit$lambdaInverse <- do.call(c,lapply(chains,"[[","lambdaInverse"))
       fit$lambdaBInverse <-  do.call(c,lapply(chains,"[[","lambdaBInverse"))
-      fit$rho <-  do.call(rbind,lapply(chains,"[[","rho"))
-      fit$hsamp <-  do.call(rbind,lapply(chains,"[[","hsamp"))
+      fit$rho <-  do.call(rbind,lapply(lapply(chains,"[[","rho"),as.matrix))
+      fit$hsamp <-  do.call(rbind,lapply(lapply(chains,"[[","hsamp"),as.matrix))
       fit$sigma2 <-  do.call(c,lapply(chains,"[[","sigma2"))
-      fit$gamma <-  do.call(rbind,lapply(chains,"[[","gamma"))
+      fit$gamma <-  do.call(rbind,lapply(lapply(chains,"[[","gamma"),as.matrix))
       if(spike_slab==FALSE){
         for(m in 1:M){ ## nu is a list
           fit$nu[[m]] <- do.call(c,lapply(lapply(chains,"[[","nu"),function(obj) obj[[m]]))
