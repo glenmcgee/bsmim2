@@ -877,12 +877,11 @@ summarize_thetas <- function(obj,
 #' @author Glen McGee
 #' @export
 get_PSR <- function(x,nchains){
-  MM <- nchains
-  NN <- length(x)/MM
+  NN <- length(x)/nchains
 
   # split chains post hoc
-  xlist <- vector(mode = "list", length = MM)
-  for(ii in 1:MM){
+  xlist <- vector(mode = "list", length = nchains)
+  for(ii in 1:nchains){
     xlist[[ii]] <- x[NN*(ii-1)+(1:NN)]
   }
   
@@ -909,16 +908,17 @@ get_PSR <- function(x,nchains){
 #' @author Glen McGee
 #' @export
 check_conv <- function(fit){
-  MM <- fit$nchains
-  psr_theta <- lapply(fit$theta,function(mat) apply(as.matrix(mat),2,function(x) get_PSR(x,MM)))
-  psr_w <- lapply(fit$w,function(mat) apply(as.matrix(mat),2,function(x) get_PSR(x,MM)))
+  nchains <- fit$nchains
+  MM <- length(fit$theta)
+  psr_theta <- lapply(fit$theta,function(mat) apply(as.matrix(mat),2,function(x) get_PSR(x,nchains)))
+  psr_w <- lapply(fit$w,function(mat) apply(as.matrix(mat),2,function(x) get_PSR(x,nchains)))
   if(sum(fit$constraints)>0){
     psr_thetaPOS <- vector(mode = "list", length = MM)
     psr_wPOS <- vector(mode = "list", length = MM)
     for(mm in 1:MM)
       if(!is.null(fit$wPOS[[mm]])){
-        psr_thetaPOS[[mm]] <-  apply(as.matrix(fit$thetaPOS[[mm]]),2,function(x) get_PSR(x,MM))
-        psr_wPOS[[mm]] <-  apply(as.matrix(fit$wPOS[[mm]]),2,function(x) get_PSR(x,MM))
+        psr_thetaPOS[[mm]] <-  apply(as.matrix(fit$thetaPOS[[mm]]),2,function(x) get_PSR(x,nchains))
+        psr_wPOS[[mm]] <-  apply(as.matrix(fit$wPOS[[mm]]),2,function(x) get_PSR(x,nchains))
       }else{
         psr_thetaPOS[[mm]] <- NA
         psr_wPOS[[mm]] <- NA
@@ -927,24 +927,24 @@ check_conv <- function(fit){
     psr_thetaPOS <- NA
     psr_wPOS <- NA
   }
-  psr_lambdaInverse <- get_PSR(fit$lambdaInverse,MM)
+  psr_lambdaInverse <- get_PSR(fit$lambdaInverse,nchains)
   if(var(fit$lambdaBInverse)>0){
-    psr_lambdaBInverse <-  get_PSR(fit$lambdaBInverse,MM)
+    psr_lambdaBInverse <-  get_PSR(fit$lambdaBInverse,nchains)
   }else{
     psr_lambdaBInverse <- NA
   }
-  psr_rho <-  apply(fit$rho,2,function(x) get_PSR(x,MM))
+  psr_rho <-  apply(fit$rho,2,function(x) get_PSR(x,nchains))
   if(fit$draw_h){
-    psr_hsamp <-  apply(fit$hsamp,2,function(x) get_PSR(x,MM))
+    psr_hsamp <-  apply(fit$hsamp,2,function(x) get_PSR(x,nchains))
   }else{
     psr_hsamp <- NA
   }
-  psr_sigma2 <-  get_PSR(fit$sigma2,MM)
-  psr_gamma <-  apply(fit$gamma,2,function(x) get_PSR(x,MM))
+  psr_sigma2 <-  get_PSR(fit$sigma2,nchains)
+  psr_gamma <-  apply(fit$gamma,2,function(x) get_PSR(x,nchains))
   if(fit$spike_slab==FALSE){
-    psr_nu <- lapply(fit$nu,function(mat) apply(as.matrix(mat),2,function(x) get_PSR(x,MM)))
+    psr_nu <- lapply(fit$nu,function(mat) apply(as.matrix(mat),2,function(x) get_PSR(x,nchains)))
     if(fit$horseshoe==1){ ## under horseshoe prior
-      psr_tau <- get_PSR(fit$tau,MM)
+      psr_tau <- get_PSR(fit$tau,nchains)
     }else{
       psr_tau <- NA
     }

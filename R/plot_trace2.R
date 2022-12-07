@@ -10,6 +10,16 @@
 
 plot_trace2 <- function(object){
   
+  if(object$nchains>1){
+    NN <- length(object$sigma2)/object$nchains
+    chainID <- factor(rep(1:object$nchains,each=NN))
+    iterID <- rep(1:NN,times=object$nchains)
+  }else{
+    chainID <- rep(1,length(object$sigma2))
+    iterID <- 1:length(object$sigma2)
+  }
+  
+  
   if(class(object)!="bsmim"){
     stop("input must be of class bsmim")
   }
@@ -21,10 +31,11 @@ plot_trace2 <- function(object){
     for(ll in 1:ncol(object$theta[[mm]])){     ## loop over l (components)
       
       dfplot <- data.frame(theta=object$theta[[mm]][,ll],
-                           iter=1:nrow(object$theta[[mm]]) )
+                           iter=iterID,
+                           chain=chainID)
       
-      p <- ggplot(dfplot, aes_string(x="iter", y="theta"))+
-        geom_line(linetype=1)+ ## 3 is dotted
+      p <- ggplot(dfplot, aes_string(x="iter", y="theta",col="chain"))+
+        geom_line(linetype=1,alpha=0.7)+ ## 3 is dotted
         ylab("Theta")+
         xlab("Iteration")+
         ggtitle(paste("Theta: Index",mm,", Component",ll))+
@@ -40,10 +51,11 @@ plot_trace2 <- function(object){
   for(mm in 1:ncol(as.matrix(object$rho))){                 ## loop over m (indices)
 
     dfplot <- data.frame(rho=as.matrix(object$rho)[,mm],
-                         iter=1:nrow(as.matrix(object$rho)) )
+                         iter=iterID,
+                         chain=chainID)
     
-    p <- ggplot(dfplot, aes_string(x="iter", y="rho"))+
-      geom_line(linetype=1)+ ## 3 is dotted
+    p <- ggplot(dfplot, aes_string(x="iter", y="rho",col="chain"))+
+      geom_line(linetype=1,alpha=0.7)+ ## 3 is dotted
       ylab("Rho")+
       xlab("Iteration")+
       ggtitle(paste("Rho: Index",mm))+
@@ -61,10 +73,11 @@ plot_trace2 <- function(object){
   	    for(ll in 1:ncol(object$nu[[mm]])){     ## loop over l (components)
   	      
   	      dfplot <- data.frame(nu=object$nu[[mm]][,ll],
-  	                           iter=1:nrow(object$nu[[mm]]) )
+  	                           iter=iterID,
+  	                           chain=chainID)
   	      
-  	      p <- ggplot(dfplot, aes_string(x="iter", y="nu"))+
-  	        geom_line(linetype=1)+ ## 3 is dotted
+  	      p <- ggplot(dfplot, aes_string(x="iter", y="nu",col="chain"))+
+  	        geom_line(linetype=1,alpha=0.7)+ ## 3 is dotted
   	        ylab("Nu")+
   	        xlab("Iteration")+
   	        ggtitle(paste("Nu: Index",mm,", Component",ll))+
@@ -84,10 +97,11 @@ plot_trace2 <- function(object){
   for(pp in 1:ncol(object$gamma)){                 ## loop over P covariates
     
     dfplot <- data.frame(gamma=object$gamma[,pp],
-                         iter=1:nrow(object$gamma) )
+                         iter=iterID,
+                         chain=chainID)
     
-    p <- ggplot(dfplot, aes_string(x="iter", y="gamma"))+
-      geom_line(linetype=1)+ ## 3 is dotted
+    p <- ggplot(dfplot, aes_string(x="iter", y="gamma",col="chain"))+
+      geom_line(linetype=1,alpha=0.7)+ ## 3 is dotted
       ylab("Gamma")+
       xlab("Iteration")+
       ggtitle(paste("Gamma: ",pp))+
@@ -99,9 +113,10 @@ plot_trace2 <- function(object){
   
   ## lambdaInverse
   dfplot <- data.frame(lambdaInverse=object$lambdaInverse,
-                       iter=1:length(object$lambdaInverse) )
-  plot_lambdaInverse <- ggplot(dfplot, aes_string(x="iter", y="lambdaInverse"))+
-    geom_line(linetype=1)+ ## 3 is dotted
+                       iter=iterID,
+                       chain=chainID)
+  plot_lambdaInverse <- ggplot(dfplot, aes_string(x="iter", y="lambdaInverse",col="chain"))+
+    geom_line(linetype=1,alpha=0.7)+ ## 3 is dotted
     ylab("lambda Inverse")+
     xlab("Iteration")+
     ggtitle(paste("lambda Inverse"))+
@@ -110,9 +125,10 @@ plot_trace2 <- function(object){
     
   ## lambdaBInverse
   dfplot <- data.frame(lambdaBInverse=object$lambdaBInverse,
-                       iter=1:length(object$lambdaBInverse) )
-  plot_lambdaBInverse <- ggplot(dfplot, aes_string(x="iter", y= "lambdaBInverse"))+
-    geom_line(linetype=1)+ ## 3 is dotted
+                       iter=iterID,
+                       chain=chainID)
+  plot_lambdaBInverse <- ggplot(dfplot, aes_string(x="iter", y= "lambdaBInverse",col="chain"))+
+    geom_line(linetype=1,alpha=0.7)+ ## 3 is dotted
     ylab("lambda_B Inverse")+
     xlab("Iteration")+
     ggtitle(paste("lambda_B Inverse"))+
@@ -122,9 +138,10 @@ plot_trace2 <- function(object){
   ## tau
     if(!is.null(object["tau"][[1]])){
       dfplot <- data.frame(tau=object$tau,
-                           iter=1:length(object$tau) )
-      plot_tau <- ggplot(dfplot, aes_string(x="iter", y="tau"))+
-        geom_line(linetype=1)+ ## 3 is dotted
+                           iter=iterID,
+                           chain=chainID)
+      plot_tau <- ggplot(dfplot, aes_string(x="iter", y="tau",col="chain"))+
+        geom_line(linetype=1,alpha=0.7)+ ## 3 is dotted
         ylab("Tau")+
         xlab("Iteration")+
         ggtitle(paste("Tau"))+
@@ -138,9 +155,10 @@ plot_trace2 <- function(object){
   
   ## sigma2
   dfplot <- data.frame(sigma2=object$sigma2,
-                       iter=1:length(object$sigma2) )
-  plot_sigma2 <- ggplot(dfplot, aes_string(x="iter", y="sigma2"))+
-    geom_line(linetype=1)+ ## 3 is dotted
+                       iter=iterID,
+                       chain=chainID)
+  plot_sigma2 <- ggplot(dfplot, aes_string(x="iter", y="sigma2",col="chain"))+
+    geom_line(linetype=1,alpha=0.7)+ ## 3 is dotted
     ylab("sigma2")+
     xlab("Iteration")+
     ggtitle(paste("sigma2"))+
