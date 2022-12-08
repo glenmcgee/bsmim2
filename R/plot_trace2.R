@@ -8,7 +8,7 @@
 #' @export
 #'
 
-plot_trace2 <- function(object){
+plot_trace2 <- function(object,loglambdaInverse=TRUE){
   
   if(object$nchains>1){
     NN <- length(object$sigma2)/object$nchains
@@ -115,23 +115,31 @@ plot_trace2 <- function(object){
   dfplot <- data.frame(lambdaInverse=object$lambdaInverse,
                        iter=iterID,
                        chain=chainID)
+  if(loglambdaInverse==TRUE){
+    dfplot$lambdaInverse <- log(dfplot$lambdaInverse)
+    appendlab <- "log "
+  }else{appendlab <- ""}
   plot_lambdaInverse <- ggplot(dfplot, aes_string(x="iter", y="lambdaInverse",col="chain"))+
     geom_line(linetype=1,alpha=0.7)+ ## 3 is dotted
-    ylab("lambda Inverse")+
+    ylab(paste0(appendlab,"lambda Inverse"))+
     xlab("Iteration")+
-    ggtitle(paste("lambda Inverse"))+
+    ggtitle(paste0(appendlab,"lambda Inverse"))+
     theme_bw() +
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
-    
+  
   ## lambdaBInverse
   dfplot <- data.frame(lambdaBInverse=object$lambdaBInverse,
                        iter=iterID,
                        chain=chainID)
+  if(loglambdaInverse==TRUE){
+    dfplot$lambdaBInverse <- log(dfplot$lambdaBInverse)
+    appendlab <- "log "
+  }else{appendlab <- ""}
   plot_lambdaBInverse <- ggplot(dfplot, aes_string(x="iter", y= "lambdaBInverse",col="chain"))+
     geom_line(linetype=1,alpha=0.7)+ ## 3 is dotted
-    ylab("lambda_B Inverse")+
+    ylab(paste0(appendlab,"lambda_B Inverse"))+
     xlab("Iteration")+
-    ggtitle(paste("lambda_B Inverse"))+
+    ggtitle(paste0(appendlab,"lambda_B Inverse"))+
     theme_bw() +
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
   
