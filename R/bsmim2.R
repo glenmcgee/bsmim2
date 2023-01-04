@@ -705,7 +705,8 @@ bsmim_crossval2 <- function(object,
                     prior_slabpos=object$prior_slabpos,
                     prior_slabpos_shape_inf=object$prior_slabpos_shape_inf,
                     prior_alphas=object$prior_alphas,
-                    prior_slabrho=object$prior_slabrho )
+                    prior_slabrho=object$prior_slabrho,
+                    nchains=object$nchains)
     
     ## predict on test set (kth fold)
     pred_k <- predict_hnew_X2(fit_k,
